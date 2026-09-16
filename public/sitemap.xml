@@ -43,4 +43,10 @@
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
+  <!-- Tools -->
+  <url>
+    <loc>https://ahadex.fun/tools/photo-qr-badge-generator</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
 </urlset>

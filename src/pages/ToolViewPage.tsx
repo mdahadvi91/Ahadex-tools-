@@ -10,7 +10,9 @@ import { ToolCard } from '../components/tools/ToolCard';
 import { ToolEmptyState } from '../components/tools/ToolEmptyState';
 import { ToolProcessingState } from '../components/tools/ToolProcessingState';
 import { ToolSuccessState } from '../components/tools/ToolSuccessState';
+import { PhotoQrBadgeGenerator } from '../components/tools/qr/PhotoQrBadgeGenerator';
 import { useToast } from '../context/ToastContext';
+import { SEOHead } from '../components/common/SEOHead';
 import {
   ArrowLeft,
   Share2,
@@ -45,18 +47,70 @@ export const ToolViewPage: React.FC = () => {
   // Dynamic SEO metadata per tool route
   useEffect(() => {
     if (tool) {
-      document.title = `${tool.name} – AHADEX TOOLS`;
+      if (tool.slug === 'photo-qr-badge-generator') {
+        document.title = 'Photo QR Badge Generator – Add QR Codes to Photos | AHADEX TOOLS';
+      } else {
+        document.title = `${tool.name} – AHADEX TOOLS`;
+      }
+
+      const descText = tool.slug === 'photo-qr-badge-generator'
+        ? 'Create a QR code badge on any photo with AHADEX TOOLS. Add website URLs, social profiles, Wi-Fi, WhatsApp, contact details and more, preview the result, and download your finished image.'
+        : `${tool.description} 100% In-Browser Local Execution.`;
+
       const metaDesc = document.querySelector('meta[name="description"]');
       if (metaDesc) {
-        metaDesc.setAttribute('content', `${tool.description} 100% In-Browser Local Execution.`);
+        metaDesc.setAttribute('content', descText);
       }
+
       const canonical = document.querySelector('link[rel="canonical"]');
       if (canonical) {
         canonical.setAttribute('href', `https://ahadex.fun/tools/${tool.slug}`);
       }
+
+      // OpenGraph Meta Tags
+      const ogTitle = document.querySelector('meta[property="og:title"]');
+      if (ogTitle) {
+        ogTitle.setAttribute('content', document.title);
+      }
+      const ogDesc = document.querySelector('meta[property="og:description"]');
+      if (ogDesc) {
+        ogDesc.setAttribute('content', descText);
+      }
+      const ogUrl = document.querySelector('meta[property="og:url"]');
+      if (ogUrl) {
+        ogUrl.setAttribute('href', `https://ahadex.fun/tools/${tool.slug}`);
+      }
+
+      // JSON-LD Structured Data
+      const scriptId = 'tool-schema-jsonld';
+      let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+      if (!script) {
+        script = document.createElement('script');
+        script.id = scriptId;
+        script.type = 'application/ld+json';
+        document.head.appendChild(script);
+      }
+      script.text = JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebApplication',
+        name: tool.name,
+        description: tool.description,
+        url: `https://ahadex.fun/tools/${tool.slug}`,
+        applicationCategory: 'MultimediaApplication',
+        operatingSystem: 'All',
+        browserRequirements: 'Requires JavaScript. Requires HTML5 Canvas support.',
+        offers: {
+          '@type': 'Offer',
+          price: '0',
+          priceCurrency: 'USD',
+        },
+      });
     }
+
     return () => {
       document.title = 'AHADEX TOOLS – Futuristic Web Utilities & Developer Suite';
+      const script = document.getElementById('tool-schema-jsonld');
+      if (script) script.remove();
     };
   }, [tool]);
 
@@ -134,122 +188,102 @@ export const ToolViewPage: React.FC = () => {
 
   return (
     <PageTransition>
+      <SEOHead
+        title={`${tool.name} – Free Online Utility`}
+        description={tool.description}
+        keywords={`${tool.name}, ${tool.name} online, ${tool.categorySlug} tool, free ${tool.name}`}
+        toolData={{
+          name: tool.name,
+          description: tool.description,
+          category: tool.categorySlug,
+          slug: tool.slug,
+        }}
+      />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        {/* Breadcrumb Bar */}
-        <div className="flex items-center justify-between gap-4 mb-6">
-          <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+        {/* Top Breadcrumbs & Share Bar */}
+        <div className="flex items-center justify-between sm:justify-end gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+              <Link to="/" className="hover:text-cyan-400 transition-colors">
+                Home
+              </Link>
+              <span>/</span>
+              {category && (
+                <>
+                  <Link
+                    to={`/category/${category.slug}`}
+                    className="hover:text-cyan-400 transition-colors"
+                  >
+                    {category.name}
+                  </Link>
+                  <span>/</span>
+                </>
+              )}
+              <span className="text-cyan-400 font-semibold truncate">{tool.name}</span>
+            </div>
+
             <button
               type="button"
-              onClick={() => navigate(-1)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white font-sans text-xs font-semibold mr-1 cursor-pointer transition-colors"
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-card text-xs text-slate-300 hover:text-white hover:border-cyan-400/50 transition-all cursor-pointer"
+              aria-label="Share tool"
             >
-              <ArrowLeft className="w-3.5 h-3.5 text-cyan-400" />
-              <span>Back</span>
+              {copied ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <Share2 className="w-3.5 h-3.5 text-cyan-400" />
+              )}
+              <span className="font-mono text-[11px]">{copied ? 'Copied' : 'Share'}</span>
             </button>
-            <Link to="/" className="hover:text-cyan-400 transition-colors">
-              Home
-            </Link>
-            <span>/</span>
-            {category && (
-              <>
-                <Link
-                  to={`/category/${category.slug}`}
-                  className="hover:text-cyan-400 transition-colors"
-                >
-                  {category.name}
-                </Link>
-                <span>/</span>
-              </>
-            )}
-            <span className="text-cyan-400 font-semibold truncate">{tool.name}</span>
           </div>
-
-          <button
-            type="button"
-            onClick={handleShare}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-card text-xs text-slate-300 hover:text-white hover:border-cyan-400/50 transition-all cursor-pointer"
-            aria-label="Share tool"
-          >
-            {copied ? (
-              <Check className="w-3.5 h-3.5 text-emerald-400" />
-            ) : (
-              <Share2 className="w-3.5 h-3.5 text-cyan-400" />
-            )}
-            <span className="font-mono text-[11px]">{copied ? 'Copied' : 'Share'}</span>
-          </button>
         </div>
 
-        {/* Tool Header Card */}
-        <div className="rounded-3xl glass-card border border-white/10 p-6 sm:p-8 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="flex items-start gap-4">
-              <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-950/30">
-                <AnimatedIcon name={tool.iconName} className="w-7 h-7" />
-              </div>
-
-              <div>
-                <div className="flex items-center gap-2 flex-wrap mb-2">
-                  <Badge variant="cyan" withDot>
-                    {tool.category}
-                  </Badge>
-                  {tool.badge && <Badge variant="purple">{tool.badge}</Badge>}
-                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/5 text-slate-400">
-                    Version 1.0.0
-                  </span>
+        {/* Tool Header Card with 360-Degree Rotating Neon Border Beam */}
+        <div className="relative p-[1.5px] rounded-3xl overflow-hidden shadow-2xl shadow-cyan-950/20 mb-8 group">
+          <div className="absolute -inset-[200%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
+          <div className="relative rounded-[22px] bg-slate-900/95 backdrop-blur-xl p-6 sm:p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div className="flex items-start gap-4">
+                <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-950/30">
+                  <AnimatedIcon name={tool.iconName} className="w-7 h-7" />
                 </div>
 
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-                  {tool.name}
-                </h1>
-                <p className="text-sm text-slate-300/90 mt-2 max-w-2xl leading-relaxed">
-                  {tool.description}
-                </p>
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap mb-2">
+                    <Badge variant="cyan" withDot>
+                      {tool.category}
+                    </Badge>
+                    {tool.badge && <Badge variant="purple">{tool.badge}</Badge>}
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/5 text-slate-400">
+                      Version 1.0.0
+                    </span>
+                  </div>
+
+                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
+                    {tool.name}
+                  </h1>
+                  <p className="text-sm text-slate-300/90 mt-2 max-w-2xl leading-relaxed">
+                    {tool.description}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 shrink-0 md:text-right">
+                <div className="inline-flex items-center gap-1.5 text-xs text-cyan-400 font-mono">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>100% In-Browser Execution</span>
+                </div>
               </div>
             </div>
-
-            <div className="flex flex-col gap-2 shrink-0 md:text-right">
-              <div className="inline-flex items-center gap-1.5 text-xs text-cyan-400 font-mono">
-                <ShieldCheck className="w-4 h-4" />
-                <span>100% In-Browser Execution</span>
-              </div>
-              <div className="text-[11px] text-slate-500 font-mono">
-                Memory Sandbox: Zero Remote Uploads
-              </div>
-            </div>
-          </div>
-
-          {/* Workbench Tabs */}
-          <div className="flex items-center gap-2 mt-6 pt-4 border-t border-white/5">
-            <button
-              type="button"
-              onClick={() => setActiveTab('workbench')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                activeTab === 'workbench'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <Sliders className="w-3.5 h-3.5" />
-              <span>Interactive Workbench</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveTab('documentation')}
-              className={`px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
-                activeTab === 'documentation'
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <FileCode className="w-3.5 h-3.5" />
-              <span>API & Architecture Docs</span>
-            </button>
           </div>
         </div>
 
-        {/* Tab 1: Interactive Workbench Shell */}
-        {activeTab === 'workbench' ? (
+        {/* Tool Direct Interface */}
+        {tool.slug === 'photo-qr-badge-generator' ? (
+          <div className="mb-12">
+            <PhotoQrBadgeGenerator />
+          </div>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
             {/* Left Controls & Parameters Sidebar */}
             <div className="lg:col-span-4 space-y-4">
@@ -394,43 +428,6 @@ export const ToolViewPage: React.FC = () => {
                   </span>
                 </div>
               </div>
-            </div>
-          </div>
-        ) : (
-          /* Tab 2: Documentation & Specifications */
-          <div className="rounded-2xl glass-card border border-white/10 p-6 sm:p-8 mb-12 space-y-6 max-w-4xl">
-            <h3 className="text-lg font-bold text-slate-100">
-              Technical Specification: {tool.name}
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                <div className="text-xs text-slate-400 font-mono">CATEGORY</div>
-                <div className="text-sm font-bold text-slate-200 mt-1">{tool.category}</div>
-              </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                <div className="text-xs text-slate-400 font-mono">EXECUTION MODEL</div>
-                <div className="text-sm font-bold text-emerald-400 mt-1">Client Sandbox</div>
-              </div>
-              <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                <div className="text-xs text-slate-400 font-mono">TAGS</div>
-                <div className="text-xs text-slate-300 mt-1 flex gap-1 flex-wrap">
-                  {tool.tags.map((tag) => (
-                    <span key={tag} className="px-1.5 py-0.5 rounded bg-white/5">
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-3 text-sm text-slate-300/90 leading-relaxed">
-              <h4 className="font-semibold text-slate-100">Privacy & Cryptographic Integrity</h4>
-              <p>
-                All data manipulated through this tool is processed completely inside the user&apos;s
-                browser thread or a dedicated WebWorker. No payloads are sent to remote APIs,
-                guaranteeing compliance with GDPR, HIPAA, and internal enterprise secrecy policies.
-              </p>
             </div>
           </div>
         )}

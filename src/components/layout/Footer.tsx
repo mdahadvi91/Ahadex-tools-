@@ -5,13 +5,12 @@ import { CATEGORIES } from '../../tools/registry';
 import { useLanguage } from '../../context/LanguageContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../ui/Button';
-import { ShieldCheck, ArrowRight, CheckCircle2, Cpu, Lock } from 'lucide-react';
+import { ShieldCheck, ArrowRight, Lock } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const { t } = useLanguage();
   const { addToast } = useToast();
   const [email, setEmail] = useState('');
-  const [isSubscribed, setIsSubscribed] = useState(false);
 
   const handleSubscribe = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +18,6 @@ export const Footer: React.FC = () => {
       addToast('Invalid Email', 'Please enter a valid email address.', 'warning');
       return;
     }
-    setIsSubscribed(true);
     addToast('Subscribed!', t.footer.subscribeSuccess, 'success');
     setEmail('');
   };
@@ -35,9 +33,7 @@ export const Footer: React.FC = () => {
           <div className="lg:col-span-2 space-y-4">
             <AnimatedLogo size="md" />
             <p className="text-sm text-slate-400 max-w-sm leading-relaxed">
-              AHADEX TOOLS is a next-generation web utility platform engineered for
-              developers, designers, and creators. We prioritize client-side execution,
-              uncompromising zero-data-retention security, and sub-second performance.
+              {t.footer.legal}
             </p>
 
             {/* Live Operational Status Badge */}
@@ -52,12 +48,12 @@ export const Footer: React.FC = () => {
             <div className="flex items-center gap-4 text-xs text-slate-400 pt-2 font-mono">
               <span className="inline-flex items-center gap-1 text-cyan-400">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                100% In-Browser Privacy
+                {t.common.clientSideSecured}
               </span>
               <span>•</span>
               <span className="inline-flex items-center gap-1 text-blue-400">
                 <Lock className="w-3.5 h-3.5" />
-                Zero-Upload Engine
+                {t.common.zeroDataRetention}
               </span>
             </div>
           </div>
@@ -86,7 +82,7 @@ export const Footer: React.FC = () => {
           {/* Platform & Company */}
           <div>
             <h4 className="text-xs font-mono uppercase tracking-wider text-slate-300 font-semibold mb-4">
-              Platform
+              {t.common.navigationLegal}
             </h4>
             <ul className="space-y-2.5 text-xs text-slate-400">
               <li>

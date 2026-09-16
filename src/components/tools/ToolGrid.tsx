@@ -284,7 +284,7 @@ export const ToolGrid: React.FC<ToolGridProps> = ({
           </div>
         )}
 
-        {/* Tools Display: Mobile 2 columns (grid-cols-2), Tablet 3 columns (md:grid-cols-3), Desktop 4 columns (lg:grid-cols-4) */}
+        {/* Tools Display Grid: Mobile strictly 2 columns (grid-cols-2), Tablet 3 columns (md:grid-cols-3), Laptop/Desktop 4 columns (lg:grid-cols-4) */}
         {filteredTools.length > 0 ? (
           viewMode === 'grid' ? (
             <motion.div
@@ -308,44 +308,49 @@ export const ToolGrid: React.FC<ToolGridProps> = ({
             </motion.div>
           ) : (
             /* Compact List View */
-            <div className="space-y-2">
+            <div className="space-y-3">
               {filteredTools.map((tool) => (
-                <Link
+                <div
                   key={tool.id}
-                  to={`/tools/${tool.slug}`}
-                  className="glass-card flex items-center justify-between p-3 sm:p-3.5 rounded-xl border border-white/10 hover:border-cyan-400/50 hover:bg-white/5 transition-all group"
+                  className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300"
                 >
-                  <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20 flex items-center justify-center shrink-0">
-                      <AnimatedIcon name={tool.iconName} className="w-4 h-4" />
-                    </div>
-                    <div className="truncate min-w-0">
-                      <div className="flex items-center gap-1.5 sm:gap-2">
-                        <span className="text-xs sm:text-sm font-semibold text-slate-100 group-hover:text-cyan-300 transition-colors truncate">
-                          {tool.name}
-                        </span>
-                        {tool.badge && (
-                          <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0">
-                            {tool.badge}
-                          </span>
-                        )}
+                  <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-50 group-hover:opacity-100 transition-opacity duration-300" />
+                  <Link
+                    to={`/tools/${tool.slug}`}
+                    className="relative glass-card flex items-center justify-between p-3.5 sm:p-4 rounded-[14px] bg-slate-900/95 hover:bg-slate-900/98 transition-all group"
+                  >
+                    <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500/20 flex items-center justify-center shrink-0">
+                        <AnimatedIcon name={tool.iconName} className="w-4 h-4" />
                       </div>
-                      <p className="text-[11px] sm:text-xs text-slate-400 truncate mt-0.5">
-                        {tool.description}
-                      </p>
+                      <div className="truncate min-w-0">
+                        <div className="flex items-center gap-1.5 sm:gap-2">
+                          <span className="text-xs sm:text-sm font-semibold text-slate-100 group-hover:text-cyan-300 transition-colors truncate">
+                            {tool.name}
+                          </span>
+                          {tool.badge && (
+                            <span className="text-[9px] sm:text-[10px] font-mono px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0">
+                              {tool.badge}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] sm:text-xs text-slate-400 truncate mt-0.5">
+                          {tool.description}
+                        </p>
+                      </div>
                     </div>
-                  </div>
 
-                  <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-2">
-                    <span className="hidden md:inline-block text-xs font-mono text-slate-400">
-                      {tool.category}
-                    </span>
-                    <span className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-cyan-500 group-hover:text-slate-950 text-cyan-300 text-[11px] font-bold flex items-center gap-1 transition-all">
-                      <span>Open</span>
-                      <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
-                    </span>
-                  </div>
-                </Link>
+                    <div className="flex items-center gap-2 sm:gap-4 shrink-0 ml-2">
+                      <span className="hidden md:inline-block text-xs font-mono text-slate-400">
+                        {tool.category}
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-cyan-500 group-hover:text-slate-950 text-cyan-300 text-[11px] font-bold flex items-center gap-1 transition-all">
+                        <span>Open</span>
+                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+                      </span>
+                    </div>
+                  </Link>
+                </div>
               ))}
             </div>
           )

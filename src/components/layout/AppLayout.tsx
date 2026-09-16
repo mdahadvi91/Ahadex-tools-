@@ -8,6 +8,8 @@ import { FixedBackButton } from './FixedBackButton';
 import { SearchModal } from '../tools/SearchModal';
 import { ToastContainer } from '../ui/ToastContainer';
 import { AnimatedGradient } from '../animations/AnimatedGradient';
+import { SEOHead } from '../common/SEOHead';
+import { pageview } from '../../lib/gtag';
 
 interface AppLayoutProps {
   children?: React.ReactNode;
@@ -19,9 +21,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const location = useLocation();
 
-  // Scroll to top on route navigation
+  // Scroll to top & trigger Google Analytics pageview on route navigation
   useEffect(() => {
     window.scrollTo(0, 0);
+    pageview(location.pathname);
   }, [location.pathname]);
 
   // Global keyboard shortcut & custom event for search
@@ -44,6 +47,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-[#080b11] text-slate-100 selection:bg-cyan-500/30 selection:text-cyan-200 relative overflow-x-hidden">
+      {/* Dynamic SEO & Google Metadata Management */}
+      <SEOHead />
+
       {/* Background Animated Atmosphere */}
       <AnimatedGradient />
 

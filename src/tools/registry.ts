@@ -49,7 +49,7 @@ export const CATEGORIES: Category[] = [
     iconName: 'QrCode',
     color: 'from-amber-500 to-orange-600',
     gradient: 'border-amber-500/20 hover:border-amber-400/40 text-amber-400',
-    toolCount: 0,
+    toolCount: 1,
   },
   {
     id: 'career',
@@ -74,4 +74,25 @@ export const CATEGORIES: Category[] = [
 ];
 
 // Active Tools Registry - Add tools one by one on user request
-export const TOOLS_REGISTRY: Tool[] = [];
+export const TOOLS_REGISTRY: Tool[] = [
+  {
+    id: 'photo-qr-badge-generator',
+    name: 'Photo QR Badge Generator',
+    slug: 'photo-qr-badge-generator',
+    description: 'Create a QR code badge and place it on your photo. Add URLs, social profiles, Wi-Fi, WhatsApp, contact details, email, phone numbers, or text, then preview and download the finished image.',
+    longDescription: 'Photo QR Badge Generator allows you to overlay a highly scannable, fully customized QR code badge onto any photo. Support for website links, social media profiles, Wi-Fi configuration cards, WhatsApp direct chats, vCard contacts, email templates, phone calls, and plain text. 100% client-side privacy with zero cloud upload.',
+    category: 'QR & Barcode',
+    categorySlug: 'qr',
+    iconName: 'QrCode',
+    tags: ['qr', 'badge', 'photo', 'watermark', 'wifi-qr', 'vcard', 'whatsapp-qr'],
+    status: 'ready',
+    isFeatured: true,
+    isPopular: true,
+    badge: 'Popular',
+    inputFormat: 'JPG, PNG, WebP',
+    outputFormat: 'PNG, JPG',
+    processingType: 'client-side',
+    version: '1.0.0',
+    releaseDate: '2026-09-16',
+  },
+];
