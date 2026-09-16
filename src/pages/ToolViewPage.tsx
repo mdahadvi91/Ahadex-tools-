@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/animations/PageTransition';
 import { TOOLS_REGISTRY, CATEGORIES } from '../tools/registry';
 import { AnimatedIcon } from '../components/animations/AnimatedIcon';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
-import { Reveal } from '../components/animations/Reveal';
 import { ToolCard } from '../components/tools/ToolCard';
 import { ToolEmptyState } from '../components/tools/ToolEmptyState';
 import { ToolProcessingState } from '../components/tools/ToolProcessingState';
@@ -17,17 +16,19 @@ import {
   ArrowLeft,
   Share2,
   ShieldCheck,
-  Cpu,
-  Lock,
   Sparkles,
   Sliders,
   Play,
   RotateCcw,
-  Copy,
   Check,
-  UploadCloud,
-  FileCode,
   Info,
+  HelpCircle,
+  QrCode,
+  Move,
+  Upload,
+  Download,
+  CheckCircle2,
+  Grid,
 } from 'lucide-react';
 
 export const ToolViewPage: React.FC = () => {
@@ -68,9 +69,7 @@ export const ToolViewPage: React.FC = () => {
   }
 
   const category = CATEGORIES.find((c) => c.slug === tool.categorySlug);
-  const relatedTools = TOOLS_REGISTRY.filter(
-    (t) => t.categorySlug === tool.categorySlug && t.id !== tool.id
-  ).slice(0, 3);
+  const relatedTools = TOOLS_REGISTRY.filter((t) => t.id !== tool.id);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -382,21 +381,164 @@ export const ToolViewPage: React.FC = () => {
           </div>
         )}
 
-        {/* Related Category Tools */}
-        {relatedTools.length > 0 && (
-          <div className="mt-12 pt-10 border-t border-white/10">
-            <h3 className="text-lg font-bold text-slate-100 mb-6 flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              <span>More in {tool.category}</span>
-            </h3>
+        {/* How to Use Section with 360-degree Rotating Neon Border Step Cards */}
+        <div className="mt-12 pt-10 border-t border-white/10 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
+              <HelpCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xl font-extrabold text-slate-100 tracking-tight">
+                How to Use {tool.name}
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Follow these simple steps to generate your custom photo with an embedded QR code badge.
+              </p>
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Step 1 */}
+            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
+              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      Step 01
+                    </span>
+                    <QrCode className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-100">Select Content Type</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                    Choose what data to encode: Website URL, Wi-Fi details, WhatsApp, Social handle, Contact vCard, Email, or Phone.
+                  </p>
+                </div>
+                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                  <span>8 Supported QR Payloads</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 2 */}
+            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
+              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      Step 02
+                    </span>
+                    <Move className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-100">Choose Badge Position</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                    Select where the QR code badge overlay will be placed on your photo: Top-Left, Top-Right, Bottom-Left, or Bottom-Right.
+                  </p>
+                </div>
+                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                  <span>4 Corner Placement Options</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 3 */}
+            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
+              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      Step 03
+                    </span>
+                    <Upload className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-100">Upload Image & Preview</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                    Drag and drop or select your photo. The live canvas preview updates immediately in real-time.
+                  </p>
+                </div>
+                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                  <span>Instant Client Canvas Render</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Step 4 */}
+            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
+              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                      Step 04
+                    </span>
+                    <Download className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <h4 className="text-sm font-bold text-slate-100">Download & Share</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                    Export your finished image badge in high-resolution PNG or JPEG format directly to your device.
+                  </p>
+                </div>
+                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                  <span>Zero Data Server Uploads</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Related Tools Grid Section */}
+        <div className="mt-12 pt-10 border-t border-white/10 space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-extrabold text-slate-100 tracking-tight flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-cyan-400" />
+              <span>Related Tools & Utilities</span>
+            </h3>
+            <Link
+              to="/tools"
+              className="text-xs font-semibold text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+            >
+              <span>Explore All Tools</span>
+            </Link>
+          </div>
+
+          {relatedTools.length > 0 ? (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
               {relatedTools.map((relTool) => (
                 <ToolCard key={relTool.id} tool={relTool} />
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            /* Styled Rotating Border Placeholder Grid Card for Future Tools */
+            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg">
+              <div className="absolute -inset-[200%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-50" />
+              <div className="relative rounded-[14px] bg-slate-900/95 p-6 text-center space-y-3">
+                <div className="w-12 h-12 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center mx-auto">
+                  <Grid className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="text-sm font-bold text-slate-100">More Tools Coming Soon</h4>
+                  <p className="text-xs text-slate-400 max-w-md mx-auto mt-1 leading-relaxed">
+                    As additional tools are added to AHADEX TOOLS, they will automatically populate this interactive grid with matching card designs and rotating neon borders.
+                  </p>
+                </div>
+                <div className="pt-2">
+                  <Link
+                    to="/tools"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 text-xs font-bold transition-all"
+                  >
+                    <span>Browse Tools Directory</span>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </PageTransition>
   );
