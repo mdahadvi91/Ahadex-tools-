@@ -1,6 +1,6 @@
 export const GA_MEASUREMENT_ID =
   (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_GA_MEASUREMENT_ID) ||
-  'G-AHADEXTOOLS';
+  'G-YTEFLFGF6R';
 
 // https://developers.google.com/analytics/devguides/collection/gtagjs/pages
 export const pageview = (url: string, title?: string) => {
