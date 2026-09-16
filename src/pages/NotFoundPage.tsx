@@ -2,14 +2,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { PageTransition } from '../components/animations/PageTransition';
 import { Button } from '../components/ui/Button';
-import { Sparkles, Home, Search, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowLeft, Search, ArrowRight } from 'lucide-react';
 import { TOOLS_REGISTRY } from '../tools/registry';
+import { useNavigate } from 'react-router-dom';
 
 interface NotFoundPageProps {
   onOpenSearch: () => void;
 }
 
 export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onOpenSearch }) => {
+  const navigate = useNavigate();
   const popularTools = TOOLS_REGISTRY.filter((t) => t.isPopular).slice(0, 3);
 
   return (
@@ -33,11 +35,14 @@ export const NotFoundPage: React.FC<NotFoundPageProps> = ({ onOpenSearch }) => {
         </p>
 
         <div className="flex flex-wrap items-center justify-center gap-3 mt-8">
-          <Link to="/">
-            <Button variant="primary" size="md" leftIcon={<Home className="w-4 h-4" />}>
-              Return Home
-            </Button>
-          </Link>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => navigate(-1)}
+            leftIcon={<ArrowLeft className="w-4 h-4" />}
+          >
+            Back
+          </Button>
 
           <Button
             variant="glass"

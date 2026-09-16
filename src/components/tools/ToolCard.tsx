@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
-import { ArrowRight, Sparkles, Shield, Cpu } from 'lucide-react';
+import { ArrowRight, Shield, Zap } from 'lucide-react';
 import { Tool } from '../../types';
-import { AnimatedIcon } from '../animations/AnimatedIcon';
+import { ToolIconLottie } from '../animations/ToolIconLottie';
 import { Badge } from '../ui/Badge';
 import { TiltCard } from '../animations/TiltCard';
 
@@ -13,67 +12,83 @@ interface ToolCardProps {
 }
 
 export const ToolCard: React.FC<ToolCardProps> = ({ tool, featured = false }) => {
+  const [isHovered, setIsHovered] = useState(false);
+
   return (
     <TiltCard
-      maxTilt={featured ? 6 : 4}
-      className={`h-full ${featured ? 'md:col-span-2' : ''}`}
+      maxTilt={3.5}
+      className="h-full w-full"
     >
       <Link
         to={`/tools/${tool.slug}`}
-        className={`group relative flex flex-col justify-between h-full rounded-2xl glass-card p-5 sm:p-6 border transition-all duration-300 shine-sweep ${
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        className={`group relative flex flex-col justify-between h-full rounded-2xl glass-card p-3 xs:p-3.5 sm:p-4 md:p-5 border transition-all duration-300 overflow-hidden ${
           featured
-            ? 'border-cyan-500/40 hover:border-cyan-400 bg-gradient-to-br from-slate-900/90 via-slate-950/90 to-cyan-950/20 shadow-lg shadow-cyan-950/20'
-            : 'border-white/10 hover:border-cyan-400/50 hover:shadow-lg hover:shadow-cyan-950/20'
+            ? 'border-cyan-500/40 hover:border-cyan-400/80 bg-gradient-to-br from-slate-900/95 via-slate-950/95 to-cyan-950/30 shadow-lg shadow-cyan-950/20 hover:shadow-cyan-950/50 hover:-translate-y-1'
+            : 'border-white/10 hover:border-cyan-400/60 hover:shadow-xl hover:shadow-cyan-950/30 hover:-translate-y-1'
         }`}
       >
+        {/* Subtle Ambient Radial Light Aura on Hover */}
+        <div
+          className={`absolute -top-10 -right-10 w-28 h-28 rounded-full blur-2xl transition-opacity duration-500 pointer-events-none ${
+            isHovered ? 'bg-cyan-400/20 opacity-100' : 'bg-cyan-500/5 opacity-0'
+          }`}
+        />
+
         <div>
-          {/* Card Top: Icon & Badges */}
-          <div className="flex items-start justify-between gap-3 mb-3.5">
+          {/* Top Row: Micro-Lottie Icon + Badge/Category */}
+          <div className="flex items-start justify-between gap-1.5 sm:gap-2 mb-2 sm:mb-3">
+            {/* Animated Icon Container with Glow */}
             <div
-              className={`w-11 h-11 rounded-xl flex items-center justify-center border transition-all duration-300 ${
-                featured
-                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 group-hover:scale-105 group-hover:bg-cyan-500/30'
-                  : 'bg-white/5 text-slate-300 border-white/10 group-hover:text-cyan-400 group-hover:border-cyan-400/40 group-hover:bg-cyan-500/10'
+              className={`w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-xl flex items-center justify-center border transition-all duration-300 shrink-0 ${
+                isHovered
+                  ? 'bg-cyan-500/20 border-cyan-400/60 scale-105 shadow-md shadow-cyan-500/25 text-cyan-300'
+                  : 'bg-cyan-500/10 border-cyan-500/25 text-cyan-400'
               }`}
             >
-              <AnimatedIcon name={tool.iconName} className="w-5 h-5" />
+              <ToolIconLottie
+                toolSlug={tool.slug}
+                categorySlug={tool.categorySlug}
+                isHovered={isHovered}
+              />
             </div>
 
-            <div className="flex items-center gap-1.5 flex-wrap justify-end">
+            {/* Badges / Category Pills */}
+            <div className="flex items-center gap-1 flex-wrap justify-end">
               {tool.badge && (
-                <Badge
-                  variant={featured ? 'cyan' : 'blue'}
-                  withDot={tool.badge === 'Popular'}
-                >
+                <span className="text-[9px] sm:text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shrink-0 truncate">
                   {tool.badge}
-                </Badge>
+                </span>
               )}
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-white/5 border border-white/5 text-slate-400">
+              <span className="hidden xs:inline-block text-[8px] sm:text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/5 border border-white/5 text-slate-400 shrink-0">
                 {tool.categorySlug}
               </span>
             </div>
           </div>
 
-          {/* Tool Title & Description */}
-          <h3 className="text-base sm:text-lg font-bold text-slate-100 group-hover:text-cyan-300 transition-colors">
+          {/* Tool Title */}
+          <h3 className="text-xs sm:text-sm md:text-base font-bold text-slate-100 group-hover:text-cyan-200 transition-colors line-clamp-1 sm:line-clamp-2 leading-snug">
             {tool.name}
           </h3>
 
-          <p className="text-xs sm:text-sm text-slate-400 mt-2 leading-relaxed line-clamp-2">
+          {/* Tool Description */}
+          <p className="text-[10px] sm:text-[11px] md:text-xs text-slate-400 mt-1 sm:mt-1.5 leading-relaxed line-clamp-2">
             {tool.description}
           </p>
         </div>
 
-        {/* Card Footer: Tags & Micro Action */}
-        <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-1.5 text-[11px] font-mono text-slate-400 truncate max-w-[70%]">
-            <Shield className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-            <span className="truncate">Client-Side Engine</span>
+        {/* Card Footer: Clean Device Indicator & Dedicated Action Button */}
+        <div className="mt-3 sm:mt-4 pt-2.5 sm:pt-3 border-t border-white/5 flex items-center justify-between gap-1.5">
+          <div className="hidden sm:flex items-center gap-1 text-[9px] sm:text-[10px] font-mono text-slate-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <span className="truncate">Client RAM</span>
           </div>
 
-          <div className="flex items-center gap-1 text-cyan-400 font-medium group-hover:translate-x-1 transition-transform duration-200">
-            <span className="text-xs">Open</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+          {/* High-Craft Interactive Open Button */}
+          <div className="w-full sm:w-auto px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl bg-cyan-500/10 border border-cyan-500/30 group-hover:bg-gradient-to-r group-hover:from-cyan-500 group-hover:to-blue-500 group-hover:border-transparent group-hover:text-slate-950 group-hover:shadow-md group-hover:shadow-cyan-500/30 text-cyan-300 flex items-center justify-center gap-1 text-[10px] sm:text-xs font-bold transition-all duration-200">
+            <span>Open Tool</span>
+            <ArrowRight className="w-3 h-3 transition-transform duration-200 group-hover:translate-x-0.5 shrink-0" />
           </div>
         </div>
       </Link>

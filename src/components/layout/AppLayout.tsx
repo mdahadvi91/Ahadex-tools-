@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Navbar } from './Navbar';
-import { Sidebar } from './Sidebar';
+import { LeftSidebarDrawer } from './LeftSidebarDrawer';
 import { SettingsDrawer } from './SettingsDrawer';
-import { MobileMenu } from './MobileMenu';
 import { Footer } from './Footer';
+import { FixedBackButton } from './FixedBackButton';
 import { SearchModal } from '../tools/SearchModal';
 import { ToastContainer } from '../ui/ToastContainer';
 import { AnimatedGradient } from '../animations/AnimatedGradient';
@@ -15,9 +15,8 @@ interface AppLayoutProps {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const location = useLocation();
 
   // Scroll to top on route navigation
@@ -48,16 +47,15 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Background Animated Atmosphere */}
       <AnimatedGradient />
 
-      {/* Sticky Liquid Glass Navbar */}
+      {/* Fixed Liquid Glass Navbar (stays on top even when scrolling) */}
       <Navbar
+        onOpenLeftSidebar={() => setIsLeftSidebarOpen(true)}
+        onOpenRightSidebar={() => setIsRightSidebarOpen(true)}
         onOpenSearch={() => setIsSearchOpen(true)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
-        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
       />
 
-      {/* Main Content Area with Optional Expandable Sidebar */}
-      <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto">
+      {/* Main Content Area (padding-top ensures content is not hidden behind fixed header) */}
+      <div className="flex-1 flex flex-col max-w-7xl w-full mx-auto pt-20 sm:pt-24">
         <main className="flex-1 w-full relative z-10">
           {children || <Outlet />}
         </main>
@@ -66,23 +64,26 @@ export const AppLayout: React.FC<AppLayoutProps> = ({ children }) => {
       {/* Glass Footer */}
       <Footer />
 
+      {/* Fixed Global Back Button (strictly says only "Back", stays fixed across all pages) */}
+      <FixedBackButton />
+
+      {/* Left Sidebar: Menu & Categories Drawer */}
+      <LeftSidebarDrawer
+        isOpen={isLeftSidebarOpen}
+        onClose={() => setIsLeftSidebarOpen(false)}
+        onOpenSearch={() => setIsSearchOpen(true)}
+      />
+
+      {/* Right Sidebar: Theme Toggle, Language, About, Contact, Privacy, Terms, Disclaimer */}
+      <SettingsDrawer
+        isOpen={isRightSidebarOpen}
+        onClose={() => setIsRightSidebarOpen(false)}
+      />
+
       {/* Search Modal (Keyboard & Button Triggered) */}
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
-      />
-
-      {/* Settings & Navigation Right Drawer */}
-      <SettingsDrawer
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
-
-      {/* Mobile Drawer Navigation */}
-      <MobileMenu
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        onOpenSearch={() => setIsSearchOpen(true)}
       />
 
       {/* Toast Notification Layer */}

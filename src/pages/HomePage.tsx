@@ -1,8 +1,6 @@
 import React from 'react';
 import { PageTransition } from '../components/animations/PageTransition';
 import { HeroSection } from '../components/hero/HeroSection';
-import { FeaturedToolsSection } from '../components/tools/FeaturedToolsSection';
-import { CategorySection } from '../components/tools/CategorySection';
 import { ToolGrid } from '../components/tools/ToolGrid';
 import { WhyAhadex } from '../components/common/WhyAhadex';
 import { HowItWorks } from '../components/common/HowItWorks';
@@ -24,31 +22,25 @@ export const HomePage: React.FC<HomePageProps> = ({ onOpenSearch }) => {
 
   return (
     <PageTransition>
-      {/* 1. Hero Section */}
+      {/* 1. Hero Section with Search and Trending Pills */}
       <HeroSection onOpenSearch={onOpenSearch} onExploreClick={scrollToTools} />
 
-      {/* 2. Featured Tools */}
-      <FeaturedToolsSection />
-
-      {/* 3. Categories */}
-      <CategorySection />
-
-      {/* 4. Complete Tool Grid */}
+      {/* 2. Full Tool Registry - All Platform Utilities (Elevated right to the top) */}
       <ToolGrid />
 
-      {/* 5. Why AHADEX TOOLS */}
+      {/* 3. Why AHADEX TOOLS */}
       <WhyAhadex />
 
-      {/* 6. How It Works */}
+      {/* 4. How It Works */}
       <HowItWorks />
 
-      {/* 7. Trust / Privacy Visual */}
+      {/* 5. Trust / Privacy Visual */}
       <TrustSection />
 
-      {/* 8. FAQ Accordion */}
+      {/* 6. FAQ Accordion */}
       <FAQSection />
 
-      {/* 9. Call to Action */}
+      {/* 7. Call to Action */}
       <CTASection onExploreClick={scrollToTools} />
     </PageTransition>
   );

@@ -9,6 +9,7 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?: ButtonVariant;
   size?: ButtonSize;
   isLoading?: boolean;
+  loading?: boolean;
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   children: React.ReactNode;
@@ -17,7 +18,8 @@ interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
 export const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   size = 'md',
-  isLoading = false,
+  isLoading: isLoadingProp = false,
+  loading: loadingProp,
   leftIcon,
   rightIcon,
   children,
@@ -25,6 +27,7 @@ export const Button: React.FC<ButtonProps> = ({
   disabled,
   ...props
 }) => {
+  const isLoading = loadingProp ?? isLoadingProp;
   const sizeClasses: Record<ButtonSize, string> = {
     sm: 'h-8 px-3 text-xs gap-1.5 rounded-lg',
     md: 'h-10 px-4 text-sm gap-2 rounded-xl',

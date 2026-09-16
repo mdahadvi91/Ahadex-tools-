@@ -1,43 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import {
-  Search,
-  SlidersHorizontal,
-  Sun,
-  Moon,
-  Globe,
-  Menu,
-  Sparkles,
-  Command,
-} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Menu, Search, SlidersHorizontal, Command } from 'lucide-react';
 import { AnimatedLogo } from '../animations/AnimatedLogo';
-import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { LanguageCode } from '../../types';
 
 interface NavbarProps {
+  onOpenLeftSidebar: () => void;
+  onOpenRightSidebar: () => void;
   onOpenSearch: () => void;
-  onOpenSettings: () => void;
-  onToggleSidebar?: () => void;
-  onOpenMobileMenu: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
+  onOpenLeftSidebar,
+  onOpenRightSidebar,
   onOpenSearch,
-  onOpenSettings,
-  onToggleSidebar,
-  onOpenMobileMenu,
 }) => {
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
-  const { resolvedTheme, toggleTheme } = useTheme();
-  const { language, setLanguage, options, t } = useLanguage();
-  const location = useLocation();
+  const { t } = useLanguage();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      setIsScrolled(window.scrollY > 15);
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
@@ -45,154 +28,86 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <header
-      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+      id="main-header"
+      className={`fixed top-0 left-0 right-0 z-50 w-full transition-all duration-300 ${
         isScrolled
-          ? 'py-2.5 bg-[#080b11]/85 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/20'
-          : 'py-4 bg-transparent border-b border-transparent'
+          ? 'py-2 sm:py-2.5 bg-[#080b11]/90 backdrop-blur-xl border-b border-white/10 shadow-lg shadow-black/40'
+          : 'py-2.5 sm:py-3.5 bg-[#080b11]/75 backdrop-blur-lg border-b border-white/5'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-4">
-        {/* Left: Brand Logo & Category Sidebar toggle */}
-        <div className="flex items-center gap-3">
-          {onToggleSidebar && (
-            <button
-              type="button"
-              onClick={onToggleSidebar}
-              className="p-2 rounded-xl glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white transition-colors cursor-pointer hidden lg:flex items-center justify-center"
-              aria-label="Toggle Category Navigation"
-            >
-              <SlidersHorizontal className="w-4 h-4 text-cyan-400" />
-            </button>
-          )}
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4 w-full">
+        {/* 1. Left Sidebar (Menu Button) + 2. Logo + 3. Title */}
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
+          {/* 1. Left Sidebar (Menu Button) */}
+          <button
+            id="left-sidebar-menu-button"
+            type="button"
+            onClick={onOpenLeftSidebar}
+            className="p-1.5 sm:p-2.5 rounded-xl glass-card hover:border-cyan-400/60 text-slate-300 hover:text-cyan-300 transition-all cursor-pointer flex items-center justify-center active:scale-95 shrink-0"
+            aria-label="Open Left Menu & Categories"
+            title="Menu"
+          >
+            <Menu className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
+          </button>
 
-          <AnimatedLogo size="md" />
+          {/* 2. Logo */}
+          <div className="shrink-0">
+            <AnimatedLogo size="sm" showText={false} />
+          </div>
+
+          {/* 3. Title */}
+          <Link
+            to="/"
+            id="header-brand-title"
+            className="flex items-center gap-1 select-none group focus:outline-none shrink-0"
+            aria-label="AHADEX TOOLS Home"
+          >
+            <span className="text-sm sm:text-lg md:text-xl font-extrabold tracking-tight text-slate-100 group-hover:text-cyan-200 transition-colors">
+              AHADEX
+            </span>
+            <span className="hidden xs:inline text-[9px] sm:text-xs uppercase tracking-wider px-1 sm:px-1.5 py-0.5 rounded bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono font-bold">
+              TOOLS
+            </span>
+          </Link>
         </div>
 
-        {/* Center: Interactive Search Trigger (Desktop) */}
-        <div className="hidden md:flex flex-1 max-w-md mx-4">
+        {/* 4. Search - Auto responsive: short on mobile, full on desktop */}
+        <div className="flex-1 min-w-0 max-w-md mx-1 sm:mx-4">
           <button
+            id="header-search-button"
             type="button"
             onClick={onOpenSearch}
-            className="w-full h-10 px-4 rounded-xl glass-input border border-white/10 hover:border-cyan-400/50 flex items-center justify-between text-slate-400 text-sm hover:text-slate-200 transition-all shadow-sm group cursor-pointer"
+            className="w-full h-8 sm:h-10 px-2 sm:px-4 rounded-xl glass-input border border-white/10 hover:border-cyan-400/50 flex items-center justify-between text-slate-400 text-xs sm:text-sm hover:text-slate-200 transition-all shadow-sm group cursor-pointer"
+            aria-label="Search tools"
           >
-            <div className="flex items-center gap-2.5">
-              <Search className="w-4 h-4 text-slate-400 group-hover:text-cyan-400 transition-colors" />
-              <span className="truncate">{t.common.searchPlaceholder}</span>
+            <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
+              <Search className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-slate-400 group-hover:text-cyan-400 transition-colors shrink-0" />
+              {/* On desktop: full descriptive text */}
+              <span className="hidden md:inline truncate">{t.common.searchPlaceholder}</span>
+              {/* On tablet/small screens: medium text */}
+              <span className="hidden sm:inline md:hidden truncate">Search utilities...</span>
+              {/* On mobile: compact clean label that prevents overflowing */}
+              <span className="sm:hidden truncate text-[11px] text-slate-400">Search tools...</span>
             </div>
 
-            <div className="flex items-center gap-1 font-mono text-[11px] px-2 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">
+            <div className="hidden sm:flex items-center gap-1 font-mono text-[10px] px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300 shrink-0 ml-1">
               <Command className="w-3 h-3" />
               <span>K</span>
             </div>
           </button>
         </div>
 
-        {/* Right: Actions (Theme, Language, Settings, Mobile Menu) */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* Quick Search on Mobile */}
+        {/* 5. Right Sidebar (Settings & Navigation Drawer Button) */}
+        <div className="flex items-center shrink-0">
           <button
+            id="right-sidebar-button"
             type="button"
-            onClick={onOpenSearch}
-            className="md:hidden p-2.5 rounded-xl glass-card text-slate-300 hover:text-white hover:border-cyan-400/50 transition-colors cursor-pointer"
-            aria-label="Search tools"
+            onClick={onOpenRightSidebar}
+            className="p-1.5 sm:p-2.5 rounded-xl glass-card hover:border-cyan-400/60 text-slate-300 hover:text-cyan-300 transition-all cursor-pointer flex items-center justify-center active:scale-95 shrink-0"
+            aria-label="Open Settings & Navigation"
+            title="Settings & Navigation"
           >
-            <Search className="w-4 h-4" />
-          </button>
-
-          {/* Language Dropdown */}
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setIsLangMenuOpen(!isLangMenuOpen)}
-              className="h-9 px-2.5 rounded-xl glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white text-xs font-mono flex items-center gap-1.5 transition-colors cursor-pointer"
-              aria-label="Select Language"
-              aria-expanded={isLangMenuOpen}
-            >
-              <Globe className="w-4 h-4 text-cyan-400" />
-              <span className="hidden sm:inline-block uppercase font-semibold">
-                {language}
-              </span>
-            </button>
-
-            <AnimatePresence>
-              {isLangMenuOpen && (
-                <>
-                  <div
-                    className="fixed inset-0 z-20"
-                    onClick={() => setIsLangMenuOpen(false)}
-                  />
-                  <motion.div
-                    initial={{ opacity: 0, y: 8, scale: 0.95 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-2 w-44 rounded-xl glass-card bg-slate-900/95 border border-white/15 p-1.5 shadow-2xl z-30 font-sans"
-                  >
-                    {options.map((opt) => (
-                      <button
-                        key={opt.code}
-                        type="button"
-                        onClick={() => {
-                          setLanguage(opt.code as LanguageCode);
-                          setIsLangMenuOpen(false);
-                        }}
-                        className={`w-full px-3 py-2 text-left rounded-lg text-xs flex items-center justify-between transition-colors ${
-                          language === opt.code
-                            ? 'bg-cyan-500/20 text-cyan-300 font-semibold'
-                            : 'text-slate-300 hover:bg-white/5 hover:text-white'
-                        }`}
-                      >
-                        <span>{opt.nativeLabel}</span>
-                        <span className="text-[10px] uppercase font-mono opacity-60">
-                          {opt.code}
-                        </span>
-                      </button>
-                    ))}
-                  </motion.div>
-                </>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* Theme Toggle Button */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="p-2.5 rounded-xl glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            aria-label={`Switch to ${resolvedTheme === 'dark' ? 'Light' : 'Dark'} mode`}
-          >
-            <motion.div
-              key={resolvedTheme}
-              initial={{ rotate: -90, opacity: 0 }}
-              animate={{ rotate: 0, opacity: 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              {resolvedTheme === 'dark' ? (
-                <Sun className="w-4 h-4 text-amber-400" />
-              ) : (
-                <Moon className="w-4 h-4 text-cyan-400" />
-              )}
-            </motion.div>
-          </button>
-
-          {/* Quick Settings Drawer trigger */}
-          <button
-            type="button"
-            onClick={onOpenSettings}
-            className="p-2.5 rounded-xl glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            aria-label="Open Settings"
-          >
-            <SlidersHorizontal className="w-4 h-4 text-slate-300" />
-          </button>
-
-          {/* Mobile Menu trigger */}
-          <button
-            type="button"
-            onClick={onOpenMobileMenu}
-            className="lg:hidden p-2.5 rounded-xl glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white transition-colors cursor-pointer"
-            aria-label="Open Menu"
-          >
-            <Menu className="w-4 h-4" />
+            <SlidersHorizontal className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-400" />
           </button>
         </div>
       </div>

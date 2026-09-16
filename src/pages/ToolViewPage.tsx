@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useParams, Link, Navigate } from 'react-router-dom';
+import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/animations/PageTransition';
 import { TOOLS_REGISTRY, CATEGORIES } from '../tools/registry';
 import { AnimatedIcon } from '../components/animations/AnimatedIcon';
@@ -7,6 +7,9 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Reveal } from '../components/animations/Reveal';
 import { ToolCard } from '../components/tools/ToolCard';
+import { ToolEmptyState } from '../components/tools/ToolEmptyState';
+import { ToolProcessingState } from '../components/tools/ToolProcessingState';
+import { ToolSuccessState } from '../components/tools/ToolSuccessState';
 import { useToast } from '../context/ToastContext';
 import {
   ArrowLeft,
@@ -27,9 +30,10 @@ import {
 
 export const ToolViewPage: React.FC = () => {
   const { toolSlug } = useParams<{ toolSlug: string }>();
+  const navigate = useNavigate();
   const { addToast } = useToast();
   const [activeTab, setActiveTab] = useState<'workbench' | 'documentation'>('workbench');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [workbenchState, setWorkbenchState] = useState<'empty' | 'processing' | 'success'>('empty');
   const [copied, setCopied] = useState(false);
 
   const tool = TOOLS_REGISTRY.find((t) => t.slug === toolSlug);
@@ -51,15 +55,11 @@ export const ToolViewPage: React.FC = () => {
   };
 
   const handleSimulatedProcess = () => {
-    setIsProcessing(true);
+    setWorkbenchState('processing');
     setTimeout(() => {
-      setIsProcessing(false);
-      addToast(
-        'Engine Ready',
-        `${tool.name} workbench is verified and ready for production modules.`,
-        'success'
-      );
-    }, 800);
+      setWorkbenchState('success');
+      addToast('Computation Complete', `${tool.name} processed successfully!`, 'success');
+    }, 1600);
   };
 
   return (
@@ -68,6 +68,14 @@ export const ToolViewPage: React.FC = () => {
         {/* Breadcrumb Bar */}
         <div className="flex items-center justify-between gap-4 mb-6">
           <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+            <button
+              type="button"
+              onClick={() => navigate(-1)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg glass-card hover:border-cyan-400/50 text-slate-300 hover:text-white font-sans text-xs font-semibold mr-1 cursor-pointer transition-colors"
+            >
+              <ArrowLeft className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Back</span>
+            </button>
             <Link to="/" className="hover:text-cyan-400 transition-colors">
               Home
             </Link>
@@ -219,11 +227,11 @@ export const ToolViewPage: React.FC = () => {
                     variant="primary"
                     size="md"
                     className="w-full"
-                    loading={isProcessing}
+                    isLoading={workbenchState === 'processing'}
                     onClick={handleSimulatedProcess}
                     leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}
                   >
-                    Execute Utility
+                    {workbenchState === 'success' ? 'Re-Run Utility' : 'Execute Utility'}
                   </Button>
                 </div>
               </div>
@@ -244,30 +252,52 @@ export const ToolViewPage: React.FC = () => {
 
             {/* Right Input / Output Stage Area */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="rounded-2xl glass-panel border border-white/10 p-6 sm:p-8 min-h-[380px] flex flex-col justify-between">
-                {/* Drag and drop interactive area */}
-                <div className="flex-1 flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/15 hover:border-cyan-400/50 rounded-2xl transition-colors text-center cursor-pointer group bg-slate-950/20">
-                  <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 mb-3 group-hover:scale-110 transition-transform">
-                    <UploadCloud className="w-7 h-7" />
-                  </div>
-                  <h4 className="text-sm font-semibold text-slate-200 group-hover:text-cyan-300 transition-colors">
-                    Drop your input file here, or browse
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                    Supports instant client-side processing. Your file never leaves your machine.
-                  </p>
-                  <span className="mt-4 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-mono text-slate-400">
-                    Max payload: 50MB (Hardware RAM dependent)
-                  </span>
+              <div className="rounded-2xl glass-panel border border-white/10 p-4 sm:p-6 min-h-[420px] flex flex-col justify-between">
+                {/* Dynamic State Machine: Empty -> Processing -> Success */}
+                <div className="flex-1 flex items-center justify-center">
+                  {workbenchState === 'empty' && (
+                    <ToolEmptyState
+                      toolSlug={tool.slug}
+                      categorySlug={tool.categorySlug}
+                      onBrowseClick={handleSimulatedProcess}
+                    />
+                  )}
+
+                  {workbenchState === 'processing' && (
+                    <ToolProcessingState
+                      toolSlug={tool.slug}
+                      categorySlug={tool.categorySlug}
+                    />
+                  )}
+
+                  {workbenchState === 'success' && (
+                    <ToolSuccessState
+                      toolName={tool.name}
+                      outputFilename={`${tool.slug}-result.${tool.categorySlug === 'img' ? 'webp' : tool.categorySlug === 'pdf' ? 'pdf' : 'txt'}`}
+                      onReset={() => setWorkbenchState('empty')}
+                    />
+                  )}
                 </div>
 
                 {/* Status Bar */}
                 <div className="mt-4 pt-4 border-t border-white/10 flex items-center justify-between text-xs text-slate-400 font-mono">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Engine Status: Operational & Ready</span>
+                    <span className={`w-2 h-2 rounded-full ${
+                      workbenchState === 'processing'
+                        ? 'bg-cyan-400 animate-ping'
+                        : workbenchState === 'success'
+                        ? 'bg-emerald-400'
+                        : 'bg-emerald-400 animate-pulse'
+                    }`} />
+                    <span>
+                      {workbenchState === 'processing'
+                        ? 'Engine Status: Computing on-device...'
+                        : workbenchState === 'success'
+                        ? 'Engine Status: Process complete & verified'
+                        : 'Engine Status: Operational & Ready'}
+                    </span>
                   </div>
-                  <span>Wasm Buffer: 0 KB Allocated</span>
+                  <span>Wasm Buffer: {workbenchState === 'processing' ? '4,120 KB' : '0 KB'}</span>
                 </div>
               </div>
             </div>
@@ -319,7 +349,7 @@ export const ToolViewPage: React.FC = () => {
               <span>More in {tool.category}</span>
             </h3>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
               {relatedTools.map((relTool) => (
                 <ToolCard key={relTool.id} tool={relTool} />
               ))}

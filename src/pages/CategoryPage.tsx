@@ -57,15 +57,14 @@ export const CategoryPage: React.FC = () => {
                 </div>
               </div>
 
-              <Link to="/">
-                <Button
-                  variant="glass"
-                  size="sm"
-                  leftIcon={<ArrowLeft className="w-4 h-4" />}
-                >
-                  All Tools
-                </Button>
-              </Link>
+              <button
+                type="button"
+                onClick={() => window.history.length > 1 ? window.history.back() : window.location.assign('/')}
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl glass-card hover:border-cyan-400/50 text-xs font-semibold text-slate-200 hover:text-white transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 text-cyan-400" />
+                <span>Back</span>
+              </button>
             </div>
           </div>
         </Reveal>
@@ -77,7 +76,7 @@ export const CategoryPage: React.FC = () => {
             <span>Available Suite in {category.name}</span>
           </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
             {categoryTools.map((tool, idx) => (
               <Reveal key={tool.id} delay={idx * 0.05} direction="up">
                 <ToolCard tool={tool} />

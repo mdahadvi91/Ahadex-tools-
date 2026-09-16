@@ -154,7 +154,7 @@ export const ContactPage: React.FC = () => {
                     variant="primary"
                     size="md"
                     className="w-full"
-                    loading={isSubmitting}
+                    isLoading={isSubmitting}
                     rightIcon={<Send className="w-4 h-4" />}
                   >
                     Submit Dispatch

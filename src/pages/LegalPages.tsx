@@ -1,17 +1,21 @@
 import React from 'react';
 import { PageTransition } from '../components/animations/PageTransition';
-import { Reveal } from '../components/animations/Reveal';
 import { ShieldCheck, FileText, HelpCircle, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { Button } from '../components/ui/Button';
+import { useNavigate } from 'react-router-dom';
 
 export const PrivacyPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <PageTransition>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs text-cyan-400 mb-6 hover:underline">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Utilities
-        </Link>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-xs text-cyan-400 mb-6 hover:underline cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
 
         <div className="rounded-3xl glass-card border border-white/10 p-6 sm:p-12 space-y-6">
           <div className="flex items-center gap-3">
@@ -60,12 +64,18 @@ export const PrivacyPage: React.FC = () => {
 };
 
 export const TermsPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <PageTransition>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs text-cyan-400 mb-6 hover:underline">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Utilities
-        </Link>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-xs text-cyan-400 mb-6 hover:underline cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
 
         <div className="rounded-3xl glass-card border border-white/10 p-6 sm:p-12 space-y-6">
           <div className="flex items-center gap-3">
@@ -105,12 +115,18 @@ export const TermsPage: React.FC = () => {
 };
 
 export const DisclaimerPage: React.FC = () => {
+  const navigate = useNavigate();
+
   return (
     <PageTransition>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-16">
-        <Link to="/" className="inline-flex items-center gap-2 text-xs text-cyan-400 mb-6 hover:underline">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to Utilities
-        </Link>
+        <button
+          type="button"
+          onClick={() => navigate(-1)}
+          className="inline-flex items-center gap-2 text-xs text-cyan-400 mb-6 hover:underline cursor-pointer"
+        >
+          <ArrowLeft className="w-3.5 h-3.5" /> Back
+        </button>
 
         <div className="rounded-3xl glass-card border border-white/10 p-6 sm:p-12 space-y-6">
           <div className="flex items-center gap-3">
