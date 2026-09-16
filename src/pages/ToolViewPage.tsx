@@ -10,6 +10,7 @@ import { ToolEmptyState } from '../components/tools/ToolEmptyState';
 import { ToolProcessingState } from '../components/tools/ToolProcessingState';
 import { ToolSuccessState } from '../components/tools/ToolSuccessState';
 import { PhotoQrBadgeGenerator } from '../components/tools/qr/PhotoQrBadgeGenerator';
+import { VisitingCardGenerator } from '../components/tools/visiting-card/VisitingCardGenerator';
 import { useToast } from '../context/ToastContext';
 import { SEOHead } from '../components/common/SEOHead';
 import {
@@ -64,9 +65,107 @@ export const ToolViewPage: React.FC = () => {
       : `${tool.name}, ${tool.name} online, ${tool.categorySlug} tool, free ${tool.name}`
     : '';
 
-  if (!tool) {
-    return <Navigate to="/404" replace />;
-  }
+  // Dynamic tool steps helper
+  const getToolSteps = (slug: string) => {
+    if (slug === 'visiting-card-generator') {
+      return [
+        {
+          step: 'Step 01',
+          title: 'Select Card Format',
+          desc: 'Choose 1-Side or 2-Side mode and select from 8 executive business templates (Corporate, Gold, Minimal, Tech, etc.).',
+          feature: '8 Executive Templates',
+          IconComponent: Sliders,
+        },
+        {
+          step: 'Step 02',
+          title: 'Enter Contact Info',
+          desc: 'Input full name, job title, company, phone, WhatsApp, email, website, address & profile summary.',
+          feature: 'Full Contact Customization',
+          IconComponent: Sparkles,
+        },
+        {
+          step: 'Step 03',
+          title: 'Upload Photo & Logo',
+          desc: 'Add your avatar photo, adjust zoom & position, upload company logo, and enable auto QR code generation.',
+          feature: 'Logo & Avatar Framing',
+          IconComponent: Upload,
+        },
+        {
+          step: 'Step 04',
+          title: 'Export PNG or HD PDF',
+          desc: 'Preview front & back cards live, then download high-resolution 300 DPI PNG images or print-ready 2-page PDF.',
+          feature: '300 DPI HD & PDF Export',
+          IconComponent: Download,
+        },
+      ];
+    }
+
+    if (slug === 'photo-qr-badge-generator') {
+      return [
+        {
+          step: 'Step 01',
+          title: 'Select Content Type',
+          desc: 'Choose what data to encode: Website URL, Wi-Fi details, WhatsApp, Social handle, Contact vCard, Email, or Phone.',
+          feature: '8 Supported QR Payloads',
+          IconComponent: QrCode,
+        },
+        {
+          step: 'Step 02',
+          title: 'Choose Badge Position',
+          desc: 'Select where the QR code badge overlay will be placed on your photo: Top-Left, Top-Right, Bottom-Left, or Bottom-Right.',
+          feature: '4 Corner Placement Options',
+          IconComponent: Move,
+        },
+        {
+          step: 'Step 03',
+          title: 'Upload Image & Preview',
+          desc: 'Drag and drop or select your photo. The live canvas preview updates immediately in real-time.',
+          feature: 'Instant Client Canvas Render',
+          IconComponent: Upload,
+        },
+        {
+          step: 'Step 04',
+          title: 'Download & Share',
+          desc: 'Export your finished image badge in high-resolution PNG or JPEG format directly to your device.',
+          feature: 'Zero Data Server Uploads',
+          IconComponent: Download,
+        },
+      ];
+    }
+
+    return [
+      {
+        step: 'Step 01',
+        title: 'Provide Input Data',
+        desc: 'Enter text, files or parameters into the interactive workbench controls.',
+        feature: 'Real-time Processing',
+        IconComponent: Sliders,
+      },
+      {
+        step: 'Step 02',
+        title: 'Configure Options',
+        desc: 'Customize settings, formats, and rendering preferences for your output.',
+        feature: 'Custom Parameter Tuning',
+        IconComponent: Sparkles,
+      },
+      {
+        step: 'Step 03',
+        title: 'Live Preview',
+        desc: 'Review the generated output instantly on your screen with real-time updates.',
+        feature: 'Instant Client Feedback',
+        IconComponent: CheckCircle2,
+      },
+      {
+        step: 'Step 04',
+        title: 'Export & Copy',
+        desc: 'Download high-resolution output files or copy results directly to clipboard.',
+        feature: 'Zero Cloud Server Storage',
+        IconComponent: Download,
+      },
+    ];
+  };
+
+  const currentToolSteps = getToolSteps(tool.slug);
 
   const category = CATEGORIES.find((c) => c.slug === tool.categorySlug);
   const relatedTools = TOOLS_REGISTRY.filter((t) => t.id !== tool.id);
@@ -232,6 +331,10 @@ export const ToolViewPage: React.FC = () => {
           <div className="mb-12">
             <PhotoQrBadgeGenerator />
           </div>
+        ) : tool.slug === 'visiting-card-generator' ? (
+          <div className="mb-12">
+            <VisitingCardGenerator />
+          </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
             {/* Left Controls & Parameters Sidebar */}
@@ -392,103 +495,42 @@ export const ToolViewPage: React.FC = () => {
                 How to Use {tool.name}
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Follow these simple steps to generate your custom photo with an embedded QR code badge.
+                {tool.slug === 'visiting-card-generator'
+                  ? 'Follow these simple steps to design and export professional 1-side or 2-side visiting cards.'
+                  : tool.slug === 'photo-qr-badge-generator'
+                  ? 'Follow these simple steps to generate your custom photo with an embedded QR code badge.'
+                  : `Follow these simple steps to perform actions with ${tool.name}.`}
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {/* Step 1 */}
-            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                      Step 01
-                    </span>
-                    <QrCode className="w-4 h-4 text-cyan-400" />
+            {currentToolSteps.map((stepItem, idx) => {
+              const IconComp = stepItem.IconComponent;
+              return (
+                <div key={idx} className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
+                  <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
+                  <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                          {stepItem.step}
+                        </span>
+                        <IconComp className="w-4 h-4 text-cyan-400" />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-100">{stepItem.title}</h4>
+                      <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                        {stepItem.desc}
+                      </p>
+                    </div>
+                    <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                      <span>{stepItem.feature}</span>
+                    </div>
                   </div>
-                  <h4 className="text-sm font-bold text-slate-100">Select Content Type</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    Choose what data to encode: Website URL, Wi-Fi details, WhatsApp, Social handle, Contact vCard, Email, or Phone.
-                  </p>
                 </div>
-                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                  <span>8 Supported QR Payloads</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 2 */}
-            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                      Step 02
-                    </span>
-                    <Move className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-100">Choose Badge Position</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    Select where the QR code badge overlay will be placed on your photo: Top-Left, Top-Right, Bottom-Left, or Bottom-Right.
-                  </p>
-                </div>
-                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                  <span>4 Corner Placement Options</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 3 */}
-            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                      Step 03
-                    </span>
-                    <Upload className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-100">Upload Image & Preview</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    Drag and drop or select your photo. The live canvas preview updates immediately in real-time.
-                  </p>
-                </div>
-                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                  <span>Instant Client Canvas Render</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Step 4 */}
-            <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
-                <div>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                      Step 04
-                    </span>
-                    <Download className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-100">Download & Share</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                    Export your finished image badge in high-resolution PNG or JPEG format directly to your device.
-                  </p>
-                </div>
-                <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
-                  <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                  <span>Zero Data Server Uploads</span>
-                </div>
-              </div>
-            </div>
+              );
+            })}
           </div>
         </div>
 

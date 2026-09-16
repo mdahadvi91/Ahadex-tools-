@@ -140,44 +140,45 @@ export const HowItWorks: React.FC = () => {
             <Reveal key={step.number} delay={idx * 0.08} direction="up">
               <div
                 onMouseEnter={() => setActiveStep(idx)}
-                className={`relative h-full p-5 rounded-2xl glass-card border transition-all duration-300 flex flex-col justify-between cursor-pointer ${
-                  activeStep === idx
-                    ? 'border-cyan-400/60 bg-slate-900/90 shadow-xl shadow-cyan-950/30 -translate-y-1'
-                    : 'border-white/10 hover:border-white/20'
-                }`}
+                className="relative p-[1.5px] rounded-2xl overflow-hidden group h-full w-full shadow-lg transition-all duration-300 cursor-pointer"
               >
-                <div>
-                  {/* Step Header */}
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="font-mono text-xl font-black text-cyan-400">
-                      {step.number}
-                    </span>
-                    <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                      {step.icon}
+                {/* Continuous 360-degree Rotating Neon Light Beam around Card Border */}
+                <div className={`absolute -inset-[200%] animate-[spin_5s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] transition-opacity duration-300 ${activeStep === idx ? 'opacity-100' : 'opacity-60 group-hover:opacity-100'}`} />
+
+                <div className="relative flex flex-col justify-between h-full rounded-[14.5px] p-5 bg-slate-900/95 hover:bg-slate-900/98 transition-all duration-300 overflow-hidden">
+                  <div>
+                    {/* Step Header */}
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="font-mono text-xl font-black text-cyan-400">
+                        {step.number}
+                      </span>
+                      <div className="w-9 h-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center">
+                        {step.icon}
+                      </div>
                     </div>
+
+                    <h3 className="text-base font-bold text-slate-100 mb-1.5 group-hover:text-cyan-200 transition-colors">
+                      {step.title}
+                    </h3>
+
+                    <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                      {step.description}
+                    </p>
                   </div>
 
-                  <h3 className="text-base font-bold text-slate-100 mb-1.5">
-                    {step.title}
-                  </h3>
+                  {/* 2D Explanatory Animation Visual */}
+                  <div className="mt-auto pt-2">
+                    {step.visual}
+                  </div>
 
-                  <p className="text-xs text-slate-400 leading-relaxed mb-4">
-                    {step.description}
-                  </p>
+                  {/* Active Indicator Line */}
+                  {activeStep === idx && (
+                    <motion.div
+                      layoutId="howItWorksLine"
+                      className="absolute bottom-0 left-4 right-4 h-[2px] bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
+                    />
+                  )}
                 </div>
-
-                {/* 2D Explanatory Animation Visual */}
-                <div className="mt-auto pt-2">
-                  {step.visual}
-                </div>
-
-                {/* Active Indicator Line */}
-                {activeStep === idx && (
-                  <motion.div
-                    layoutId="howItWorksLine"
-                    className="absolute bottom-0 left-4 right-4 h-[2px] bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"
-                  />
-                )}
               </div>
             </Reveal>
           ))}
