@@ -1,0 +1,6 @@
+{
+  "name": "AHADEX TOOLS",
+  "description": "Futuristic, high-performance web utility suite and developer platform featuring privacy-first tools for images, documents, security, and code.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
