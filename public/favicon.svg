@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <rect width="64" height="64" rx="16" fill="#080b11"/>
+  <rect x="2" y="2" width="60" height="60" rx="14" stroke="#22d3ee" stroke-width="2" stroke-opacity="0.3"/>
+  <!-- Futuristic AHADEX hexagon/delta core -->
+  <path d="M32 12L48 21.2V39.7L32 49L16 39.7V21.2L32 12Z" fill="url(#coreGradient)" stroke="#22d3ee" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M32 23L41 28.5V39.5L32 45L23 39.5V28.5L32 23Z" fill="#080b11" stroke="#38bdf8" stroke-width="1.8"/>
+  <circle cx="32" cy="34" r="3.5" fill="#22d3ee"/>
+  <defs>
+    <linearGradient id="coreGradient" x1="16" y1="12" x2="48" y2="49" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#22d3ee" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#3b82f6" stop-opacity="0.05"/>
+    </linearGradient>
+  </defs>
+</svg>

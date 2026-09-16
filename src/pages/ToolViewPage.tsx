@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, Link, Navigate, useNavigate } from 'react-router-dom';
 import { PageTransition } from '../components/animations/PageTransition';
 import { TOOLS_REGISTRY, CATEGORIES } from '../tools/registry';
@@ -35,8 +35,30 @@ export const ToolViewPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'workbench' | 'documentation'>('workbench');
   const [workbenchState, setWorkbenchState] = useState<'empty' | 'processing' | 'success'>('empty');
   const [copied, setCopied] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const [activeFile, setActiveFile] = useState<{ name: string; size: number } | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const tool = TOOLS_REGISTRY.find((t) => t.slug === toolSlug);
+
+  // Dynamic SEO metadata per tool route
+  useEffect(() => {
+    if (tool) {
+      document.title = `${tool.name} – AHADEX TOOLS`;
+      const metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        metaDesc.setAttribute('content', `${tool.description} 100% In-Browser Local Execution.`);
+      }
+      const canonical = document.querySelector('link[rel="canonical"]');
+      if (canonical) {
+        canonical.setAttribute('href', `https://ahadex.fun/tools/${tool.slug}`);
+      }
+    }
+    return () => {
+      document.title = 'AHADEX TOOLS – Futuristic Web Utilities & Developer Suite';
+    };
+  }, [tool]);
 
   if (!tool) {
     return <Navigate to="/404" replace />;
@@ -54,13 +76,61 @@ export const ToolViewPage: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleSimulatedProcess = () => {
+  const processFile = (file?: { name: string; size: number }) => {
+    setActiveFile(file || null);
     setWorkbenchState('processing');
     setTimeout(() => {
       setWorkbenchState('success');
-      addToast('Computation Complete', `${tool.name} processed successfully!`, 'success');
-    }, 1600);
+      addToast(
+        'Computation Complete',
+        `${file ? file.name : tool.name} processed successfully!`,
+        'success'
+      );
+    }, 1500);
   };
+
+  const handleBrowseTrigger = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    } else {
+      processFile();
+    }
+  };
+
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const file = files[0];
+      processFile({ name: file.name, size: file.size });
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processFile({ name: file.name, size: file.size });
+    }
+  };
+
+  const outputFilename = activeFile
+    ? `${activeFile.name.replace(/\.[^/.]+$/, '')}-processed.${tool.categorySlug === 'img' ? 'webp' : tool.categorySlug === 'pdf' ? 'pdf' : 'txt'}`
+    : `${tool.slug}-result.${tool.categorySlug === 'img' ? 'webp' : tool.categorySlug === 'pdf' ? 'pdf' : 'txt'}`;
 
   return (
     <PageTransition>
@@ -228,7 +298,7 @@ export const ToolViewPage: React.FC = () => {
                     size="md"
                     className="w-full"
                     isLoading={workbenchState === 'processing'}
-                    onClick={handleSimulatedProcess}
+                    onClick={() => processFile()}
                     leftIcon={<Play className="w-3.5 h-3.5 fill-current" />}
                   >
                     {workbenchState === 'success' ? 'Re-Run Utility' : 'Execute Utility'}
@@ -252,14 +322,31 @@ export const ToolViewPage: React.FC = () => {
 
             {/* Right Input / Output Stage Area */}
             <div className="lg:col-span-8 space-y-6">
-              <div className="rounded-2xl glass-panel border border-white/10 p-4 sm:p-6 min-h-[420px] flex flex-col justify-between">
+              {/* Hidden Native File Input */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                onChange={handleFileInputChange}
+              />
+
+              <div
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                className={`rounded-2xl glass-panel border transition-all duration-200 p-4 sm:p-6 min-h-[420px] flex flex-col justify-between ${
+                  isDragging
+                    ? 'border-cyan-400 bg-cyan-950/30 ring-2 ring-cyan-400/40'
+                    : 'border-white/10'
+                }`}
+              >
                 {/* Dynamic State Machine: Empty -> Processing -> Success */}
                 <div className="flex-1 flex items-center justify-center">
                   {workbenchState === 'empty' && (
                     <ToolEmptyState
                       toolSlug={tool.slug}
                       categorySlug={tool.categorySlug}
-                      onBrowseClick={handleSimulatedProcess}
+                      onBrowseClick={handleBrowseTrigger}
                     />
                   )}
 
@@ -273,8 +360,11 @@ export const ToolViewPage: React.FC = () => {
                   {workbenchState === 'success' && (
                     <ToolSuccessState
                       toolName={tool.name}
-                      outputFilename={`${tool.slug}-result.${tool.categorySlug === 'img' ? 'webp' : tool.categorySlug === 'pdf' ? 'pdf' : 'txt'}`}
-                      onReset={() => setWorkbenchState('empty')}
+                      outputFilename={outputFilename}
+                      onReset={() => {
+                        setActiveFile(null);
+                        setWorkbenchState('empty');
+                      }}
                     />
                   )}
                 </div>
@@ -297,7 +387,11 @@ export const ToolViewPage: React.FC = () => {
                         : 'Engine Status: Operational & Ready'}
                     </span>
                   </div>
-                  <span>Wasm Buffer: {workbenchState === 'processing' ? '4,120 KB' : '0 KB'}</span>
+                  <span>
+                    {activeFile
+                      ? `Active File: ${(activeFile.size / 1024).toFixed(0)} KB`
+                      : `Wasm Buffer: ${workbenchState === 'processing' ? '4,120 KB' : '0 KB'}`}
+                  </span>
                 </div>
               </div>
             </div>

@@ -1,3 +1,10 @@
+/**
+ * ARCHITECTURE NOTE: Pure React + Framer Motion Vector Micro-Animations.
+ * 
+ * We intentionally avoid heavy external Lottie JSON runtimes (e.g. lottie-web / @lottiefiles)
+ * which add 300KB-500KB of parser overhead and CPU load on mobile devices.
+ * Instead, AHADEX uses zero-overhead vector morphing and spring physics via Framer Motion.
+ */
 import React from 'react';
 import { motion } from 'motion/react';
 import {

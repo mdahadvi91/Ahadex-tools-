@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Canonical Sitemap
+Sitemap: https://ahadex.fun/sitemap.xml

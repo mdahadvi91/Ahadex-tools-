@@ -27,8 +27,17 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
       setSelectedIndex(0);
       setIsFocused(true);
       setTimeout(() => inputRef.current?.focus(), 50);
+
+      const handleGlobalKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleGlobalKeyDown);
+      return () => window.removeEventListener('keydown', handleGlobalKeyDown);
     }
-  }, [isOpen]);
+  }, [isOpen, onClose]);
 
   // Filter tools by name, description, tags, category
   const filteredTools = query.trim()
@@ -49,7 +58,10 @@ export const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose }) => 
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowDown') {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      onClose();
+    } else if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex((prev) => (prev + 1) % Math.max(1, filteredTools.length));
     } else if (e.key === 'ArrowUp') {
