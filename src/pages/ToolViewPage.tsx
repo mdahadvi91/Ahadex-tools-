@@ -44,75 +44,24 @@ export const ToolViewPage: React.FC = () => {
 
   const tool = TOOLS_REGISTRY.find((t) => t.slug === toolSlug);
 
-  // Dynamic SEO metadata per tool route
-  useEffect(() => {
-    if (tool) {
-      if (tool.slug === 'photo-qr-badge-generator') {
-        document.title = 'Photo QR Badge Generator – Add QR Codes to Photos | AHADEX TOOLS';
-      } else {
-        document.title = `${tool.name} – AHADEX TOOLS`;
-      }
+  // Prepare dynamic SEO metadata props for SEOHead
+  const pageTitle = tool
+    ? tool.slug === 'photo-qr-badge-generator'
+      ? 'Photo QR Badge Generator – Add QR Codes to Photos'
+      : tool.name
+    : '';
 
-      const descText = tool.slug === 'photo-qr-badge-generator'
-        ? 'Create a QR code badge on any photo with AHADEX TOOLS. Add website URLs, social profiles, Wi-Fi, WhatsApp, contact details and more, preview the result, and download your finished image.'
-        : `${tool.description} 100% In-Browser Local Execution.`;
+  const pageDescription = tool
+    ? tool.slug === 'photo-qr-badge-generator'
+      ? 'Create a QR code badge on any photo with AHADEX TOOLS. Add website URLs, social profiles, Wi-Fi, WhatsApp, contact details and more, preview the result, and download your finished image.'
+      : `${tool.description} 100% In-Browser Local Execution.`
+    : '';
 
-      const metaDesc = document.querySelector('meta[name="description"]');
-      if (metaDesc) {
-        metaDesc.setAttribute('content', descText);
-      }
-
-      const canonical = document.querySelector('link[rel="canonical"]');
-      if (canonical) {
-        canonical.setAttribute('href', `https://ahadex.fun/tools/${tool.slug}`);
-      }
-
-      // OpenGraph Meta Tags
-      const ogTitle = document.querySelector('meta[property="og:title"]');
-      if (ogTitle) {
-        ogTitle.setAttribute('content', document.title);
-      }
-      const ogDesc = document.querySelector('meta[property="og:description"]');
-      if (ogDesc) {
-        ogDesc.setAttribute('content', descText);
-      }
-      const ogUrl = document.querySelector('meta[property="og:url"]');
-      if (ogUrl) {
-        ogUrl.setAttribute('href', `https://ahadex.fun/tools/${tool.slug}`);
-      }
-
-      // JSON-LD Structured Data
-      const scriptId = 'tool-schema-jsonld';
-      let script = document.getElementById(scriptId) as HTMLScriptElement | null;
-      if (!script) {
-        script = document.createElement('script');
-        script.id = scriptId;
-        script.type = 'application/ld+json';
-        document.head.appendChild(script);
-      }
-      script.text = JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'WebApplication',
-        name: tool.name,
-        description: tool.description,
-        url: `https://ahadex.fun/tools/${tool.slug}`,
-        applicationCategory: 'MultimediaApplication',
-        operatingSystem: 'All',
-        browserRequirements: 'Requires JavaScript. Requires HTML5 Canvas support.',
-        offers: {
-          '@type': 'Offer',
-          price: '0',
-          priceCurrency: 'USD',
-        },
-      });
-    }
-
-    return () => {
-      document.title = 'AHADEX TOOLS – Futuristic Web Utilities & Developer Suite';
-      const script = document.getElementById('tool-schema-jsonld');
-      if (script) script.remove();
-    };
-  }, [tool]);
+  const pageKeywords = tool
+    ? tool.slug === 'photo-qr-badge-generator'
+      ? 'photo qr badge generator, add qr code to photo, image qr badge, photo qr overlay, qr code creator'
+      : `${tool.name}, ${tool.name} online, ${tool.categorySlug} tool, free ${tool.name}`
+    : '';
 
   if (!tool) {
     return <Navigate to="/404" replace />;
@@ -189,13 +138,14 @@ export const ToolViewPage: React.FC = () => {
   return (
     <PageTransition>
       <SEOHead
-        title={`${tool.name} – Free Online Utility`}
-        description={tool.description}
-        keywords={`${tool.name}, ${tool.name} online, ${tool.categorySlug} tool, free ${tool.name}`}
+        title={pageTitle}
+        description={pageDescription}
+        keywords={pageKeywords}
+        canonicalUrl={`https://ahadex.fun/tools/${tool.slug}`}
         toolData={{
           name: tool.name,
-          description: tool.description,
-          category: tool.categorySlug,
+          description: pageDescription,
+          category: tool.category,
           slug: tool.slug,
         }}
       />

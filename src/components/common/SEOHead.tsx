@@ -111,6 +111,13 @@ export const SEOHead: React.FC<SEOHeadProps> = ({
     } else if (schemaScript) {
       schemaScript.remove();
     }
+
+    return () => {
+      const script = document.getElementById('seo-dynamic-schema');
+      if (script) {
+        script.remove();
+      }
+    };
   }, [title, description, keywords, canonicalUrl, ogImage, toolData]);
 
   return null;
