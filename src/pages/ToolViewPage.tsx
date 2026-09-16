@@ -12,7 +12,6 @@ import { ToolSuccessState } from '../components/tools/ToolSuccessState';
 import { PhotoQrBadgeGenerator } from '../components/tools/qr/PhotoQrBadgeGenerator';
 import { useToast } from '../context/ToastContext';
 import { SEOHead } from '../components/common/SEOHead';
-import { AdsterraNativeBanner } from '../components/ads/AdsterraNativeBanner';
 import {
   ArrowLeft,
   Share2,
@@ -228,9 +227,6 @@ export const ToolViewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tool Ad Slot 1: After Tool Header, before Workbench */}
-        <AdsterraNativeBanner slotId="tool-slot-1" />
-
         {/* Tool Direct Interface */}
         {tool.slug === 'photo-qr-badge-generator' ? (
           <div className="mb-12">
@@ -385,9 +381,6 @@ export const ToolViewPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tool Ad Slot 2: After Tool Workbench, before How to Use / Documentation */}
-        <AdsterraNativeBanner slotId="tool-slot-2" />
-
         {/* How to Use Section with 360-degree Rotating Neon Border Step Cards */}
         <div className="mt-12 pt-10 border-t border-white/10 space-y-6">
           <div className="flex items-center gap-3">
@@ -498,9 +491,6 @@ export const ToolViewPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Tool Ad Slot 3: After How to Use / Documentation, before Related Tools */}
-        <AdsterraNativeBanner slotId="tool-slot-3" />
 
         {/* Related Tools Grid Section */}
         <div className="mt-12 pt-10 border-t border-white/10 space-y-6">
