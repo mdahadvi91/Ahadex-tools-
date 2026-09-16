@@ -34,89 +34,12 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ahadex.fun/category/math</loc>
+    <loc>https://ahadex.fun/category/career</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://ahadex.fun/category/text</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-
-  <!-- Popular & Core Tools -->
-  <url>
-    <loc>https://ahadex.fun/tools/image-compressor</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/webp-converter</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/pdf-merger</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/pdf-compressor</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/pdf-split</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/jpg-to-pdf</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/qr-generator</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/wifi-qr-creator</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/json-formatter</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/jwt-inspector</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/base64-codec</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/password-generator</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.9</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/hash-generator</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/markdown-preview</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://ahadex.fun/tools/regex-tester</loc>
+    <loc>https://ahadex.fun/category/utilities</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
