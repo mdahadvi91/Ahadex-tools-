@@ -1,9 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  useLocation,
-  useNavigate,
-  useParams,
-} from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toJpeg } from 'html-to-image';
 import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
@@ -28,12 +24,8 @@ import {
 } from 'lucide-react';
 
 import { PageTransition } from '../components/animations/PageTransition';
-import { Reveal } from '../components/animations/Reveal';
 import { SEOHead } from '../components/common/SEOHead';
 import { useToast } from '../context/ToastContext';
-
-type CardMode = 'one-side' | 'two-side';
-type CardSide = 'front' | 'back';
 
 type TemplateLayout =
   | 'portrait'
@@ -45,7 +37,11 @@ type TemplateLayout =
   | 'glass'
   | 'frame'
   | 'bold'
-  | 'split';
+  | 'split'
+  | 'prism'
+  | 'monogram'
+  | 'brutalist'
+  | 'signature';
 
 type TemplateStyle = {
   name: string;
@@ -56,6 +52,7 @@ type TemplateStyle = {
   foreground: string;
   muted: string;
   layout: TemplateLayout;
+  description: string;
 };
 
 type CardData = {
@@ -105,27 +102,33 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#f8fafc',
     muted: '#94a3b8',
     layout: 'portrait',
+    description: 'Confident executive identity with strong portrait focus.',
   },
+
   '02': {
-    name: 'Monogram Noir',
+    name: 'Obsidian Gold',
     category: 'Luxury',
     accent: '#d4af6a',
-    accentSoft: '#3a2b12',
-    background: '#100e0b',
+    accentSoft: '#5b4316',
+    background: '#080706',
     foreground: '#fff8e7',
     muted: '#a8a29e',
-    layout: 'luxury',
+    layout: 'monogram',
+    description: 'Deep black luxury composition with gold geometry and signature typography.',
   },
+
   '03': {
-    name: 'Editorial Split',
+    name: 'Editorial Rose',
     category: 'Editorial',
     accent: '#fb7185',
     accentSoft: '#4c0519',
-    background: '#fffaf7',
+    background: '#fff9fa',
     foreground: '#18181b',
     muted: '#71717a',
     layout: 'editorial',
+    description: 'Elegant editorial composition for personal brands and creatives.',
   },
+
   '04': {
     name: 'Swiss Minimal',
     category: 'Minimal',
@@ -135,17 +138,21 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#0f172a',
     muted: '#64748b',
     layout: 'minimal',
+    description: 'Clean typographic system with disciplined spacing.',
   },
+
   '05': {
-    name: 'Royal Identity',
-    category: 'Premium',
-    accent: '#c084fc',
-    accentSoft: '#3b0764',
-    background: '#160b24',
-    foreground: '#faf5ff',
-    muted: '#c4b5fd',
-    layout: 'luxury',
+    name: 'Cyber Prism',
+    category: 'Technology',
+    accent: '#67e8f9',
+    accentSoft: '#164e63',
+    background: '#030712',
+    foreground: '#ecfeff',
+    muted: '#94a3b8',
+    layout: 'prism',
+    description: 'Futuristic layered glass, neon prism and technical grid treatment.',
   },
+
   '06': {
     name: 'Architect Grid',
     category: 'Architecture',
@@ -155,7 +162,9 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#eff6ff',
     muted: '#93c5fd',
     layout: 'grid',
+    description: 'Precision grid system inspired by architecture and engineering.',
   },
+
   '07': {
     name: 'Creative Offset',
     category: 'Creative',
@@ -165,17 +174,21 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#ecfdf5',
     muted: '#86efac',
     layout: 'asymmetric',
+    description: 'Asymmetric creative identity with energetic offset geometry.',
   },
+
   '08': {
-    name: 'Graphite Glass',
+    name: 'Neo Editorial',
     category: 'Modern',
-    accent: '#e2e8f0',
-    accentSoft: '#27272a',
-    background: '#111318',
+    accent: '#f5f5f5',
+    accentSoft: '#3f3f46',
+    background: '#111113',
     foreground: '#fafafa',
     muted: '#a1a1aa',
-    layout: 'glass',
+    layout: 'brutalist',
+    description: 'High-contrast editorial typography with brutalist visual structure.',
   },
+
   '09': {
     name: 'Cobalt Frame',
     category: 'Corporate',
@@ -185,7 +198,9 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#0f172a',
     muted: '#64748b',
     layout: 'frame',
+    description: 'Professional corporate frame with a sharp blue identity.',
   },
+
   '10': {
     name: 'Rose Atelier',
     category: 'Personal Brand',
@@ -195,7 +210,9 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#3f0b18',
     muted: '#881337',
     layout: 'editorial',
+    description: 'Soft premium identity for consultants and personal brands.',
   },
+
   '11': {
     name: 'Copper Heritage',
     category: 'Heritage',
@@ -205,7 +222,9 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#fff7ed',
     muted: '#fdba74',
     layout: 'frame',
+    description: 'Warm heritage aesthetic with copper accents and deep charcoal.',
   },
+
   '12': {
     name: 'Aqua Digital',
     category: 'Technology',
@@ -215,17 +234,21 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#f0fdfa',
     muted: '#99f6e4',
     layout: 'grid',
+    description: 'Digital-first identity with aqua glow and technical structure.',
   },
+
   '13': {
-    name: 'Obsidian Signature',
+    name: 'Royal Monogram',
     category: 'Signature',
-    accent: '#f8fafc',
-    accentSoft: '#334155',
-    background: '#020617',
-    foreground: '#f8fafc',
-    muted: '#94a3b8',
-    layout: 'bold',
+    accent: '#f4d27a',
+    accentSoft: '#4a3511',
+    background: '#090909',
+    foreground: '#fff9e8',
+    muted: '#b5b0a4',
+    layout: 'signature',
+    description: 'High-end monogram composition with elegant frame architecture.',
   },
+
   '14': {
     name: 'Solar Statement',
     category: 'Bold',
@@ -235,7 +258,9 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#fefce8',
     muted: '#fde68a',
     layout: 'bold',
+    description: 'Bold yellow statement design with oversized typography.',
   },
+
   '15': {
     name: 'Ocean Studio',
     category: 'Studio',
@@ -245,7 +270,9 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#ecfeff',
     muted: '#67e8f9',
     layout: 'split',
+    description: 'Contemporary studio identity with deep ocean gradients.',
   },
+
   '16': {
     name: 'Silver Classic',
     category: 'Classic',
@@ -255,14 +282,12 @@ const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
     foreground: '#0f172a',
     muted: '#64748b',
     layout: 'frame',
+    description: 'Timeless professional layout with restrained silver accents.',
   },
 };
 
 const getTemplate = (id?: string): TemplateStyle =>
   TEMPLATE_STYLES[id || '01'] || TEMPLATE_STYLES['01'];
-
-const getModeFromPath = (pathname: string): CardMode =>
-  pathname.includes('/two-side/') ? 'two-side' : 'one-side';
 
 const getInitials = (name: string) =>
   name
@@ -273,6 +298,57 @@ const getInitials = (name: string) =>
     .join('')
     .slice(0, 2)
     .toUpperCase() || 'AH';
+
+const readFileAsDataUrl = (
+  file: File,
+): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Unable to read file.'));
+      }
+    };
+
+    reader.onerror = () =>
+      reject(reader.error || new Error('Unable to read file.'));
+
+    reader.readAsDataURL(file);
+  });
+
+const waitForImages = async (root: HTMLElement) => {
+  const images = Array.from(root.querySelectorAll('img'));
+
+  await Promise.all(
+    images.map(
+      (image) =>
+        new Promise<void>((resolve) => {
+          if (image.complete && image.naturalWidth > 0) {
+            resolve();
+            return;
+          }
+
+          const finish = () => resolve();
+
+          image.addEventListener('load', finish, { once: true });
+          image.addEventListener('error', finish, { once: true });
+        }),
+    ),
+  );
+};
+
+const waitForFonts = async () => {
+  if ('fonts' in document) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Font loading failure should never block export.
+    }
+  }
+};
 
 const Field = ({
   label,
@@ -334,7 +410,7 @@ const UploadBox = ({
   accept: string;
   preview: string | null;
 }) => (
-  <label className="group relative block cursor-pointer overflow-hidden rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-4 transition hover:border-cyan-400/40 hover:bg-white/[0.055]">
+  <label className="group block cursor-pointer overflow-hidden rounded-2xl border border-dashed border-white/15 bg-white/[0.035] p-4 transition hover:border-cyan-400/40 hover:bg-white/[0.055]">
     <input
       type="file"
       accept={accept}
@@ -402,47 +478,38 @@ const ProfileVisual = ({
   </div>
 );
 
-const QrVisual = ({ value }: { value: string }) => {
-  const [src, setSrc] = useState('');
-
-  useEffect(() => {
-    let active = true;
-
-    QRCode.toDataURL(value || 'https://ahadex.fun', {
-      width: 320,
-      margin: 1,
-      errorCorrectionLevel: 'H',
-      color: {
-        dark: '#111827',
-        light: '#ffffff',
-      },
-    })
-      .then((url) => {
-        if (active) setSrc(url);
-      })
-      .catch(() => {
-        if (active) setSrc('');
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [value]);
-
-  if (!src) {
-    return (
-      <div className="h-24 w-24 rounded-xl bg-white" />
-    );
-  }
-
-  return (
-    <img
-      src={src}
-      alt="Contact QR code"
-      className="h-24 w-24 rounded-xl bg-white p-1"
-    />
-  );
-};
+const LogoVisual = ({
+  logoUrl,
+  companyName,
+  template,
+}: {
+  logoUrl: string | null;
+  companyName: string;
+  template: TemplateStyle;
+}) => (
+  <div
+    className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border"
+    style={{
+      borderColor: `${template.accent}55`,
+      background: `${template.accent}12`,
+    }}
+  >
+    {logoUrl ? (
+      <img
+        src={logoUrl}
+        alt=""
+        className="h-full w-full object-contain p-1.5"
+      />
+    ) : (
+      <span
+        className="text-sm font-black tracking-tight"
+        style={{ color: template.accent }}
+      >
+        {getInitials(companyName)}
+      </span>
+    )}
+  </div>
+);
 
 const ContactItem = ({
   icon: Icon,
@@ -466,44 +533,47 @@ const ContactItem = ({
   );
 };
 
-const CardBase = ({
+const QrVisual = ({
+  src,
+}: {
+  src: string;
+}) => {
+  if (!src) {
+    return (
+      <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-white">
+        <RefreshCw className="h-5 w-5 animate-spin text-slate-400" />
+      </div>
+    );
+  }
+
+  return (
+    <img
+      src={src}
+      alt="Contact QR code"
+      className="h-20 w-20 rounded-xl bg-white p-1"
+    />
+  );
+};
+
+const CardFrame = ({
   template,
   children,
-  side,
   cardRef,
 }: {
   template: TemplateStyle;
   children: React.ReactNode;
-  side: CardSide;
-  cardRef?: React.RefObject<HTMLDivElement | null>;
+  cardRef: React.RefObject<HTMLDivElement | null>;
 }) => (
   <div
     ref={cardRef}
-    data-export-card={side}
-    data-card-side={side}
-    className="relative aspect-[1.75/1] w-full overflow-hidden rounded-[26px] shadow-2xl"
+    data-export-card="one-side"
+    className="relative h-[600px] w-[1050px] overflow-hidden"
     style={{
       background: template.background,
       color: template.foreground,
       boxSizing: 'border-box',
     }}
   >
-    <div
-      className="absolute -right-24 -top-24 h-72 w-72 rounded-full blur-3xl"
-      style={{
-        background: template.accent,
-        opacity: 0.13,
-      }}
-    />
-
-    <div
-      className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full blur-3xl"
-      style={{
-        background: template.accent,
-        opacity: 0.07,
-      }}
-    />
-
     {children}
   </div>
 );
@@ -511,141 +581,212 @@ const CardBase = ({
 const OneSideCard = ({
   template,
   data,
+  qrSrc,
   cardRef,
 }: {
   template: TemplateStyle;
   data: CardData;
-  cardRef?: React.RefObject<HTMLDivElement | null>;
+  qrSrc: string;
+  cardRef: React.RefObject<HTMLDivElement | null>;
 }) => {
-  const company = data.companyName || 'Your Company';
-  const name = data.fullName || 'Your Name';
-  const role = data.jobTitle || 'Professional Title';
   const initials = getInitials(data.fullName);
 
-  if (template.layout === 'minimal') {
+  if (template.layout === 'monogram') {
     return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div className="flex h-full flex-col justify-between p-9">
-          <div className="flex items-center justify-between">
-            <span className="text-[9px] font-black uppercase tracking-[0.35em]">
-              AHADEX
-            </span>
-            <span className="text-[7px] font-bold uppercase tracking-[0.18em] text-slate-400">
-              BUSINESS IDENTITY
-            </span>
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-5 border"
+          style={{ borderColor: `${template.accent}55` }}
+        />
+
+        <div
+          className="absolute left-10 top-10 h-36 w-36 rounded-full border"
+          style={{
+            borderColor: `${template.accent}45`,
+            boxShadow: `0 0 80px ${template.accent}18`,
+          }}
+        />
+
+        <div
+          className="absolute -right-32 -bottom-44 h-[520px] w-[520px] rounded-full border-[2px]"
+          style={{
+            borderColor: `${template.accent}25`,
+          }}
+        />
+
+        <div className="absolute left-12 top-12">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+        </div>
+
+        <div className="absolute left-14 top-40 max-w-[590px]">
+          <p
+            className="mb-3 text-[15px] font-semibold uppercase tracking-[0.32em]"
+            style={{ color: template.accent }}
+          >
+            {data.companyName || 'PRIVATE IDENTITY'}
+          </p>
+
+          <h1 className="text-[62px] font-black leading-[0.92] tracking-[-0.055em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-5 text-[19px] font-medium uppercase tracking-[0.18em]"
+            style={{ color: template.muted }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-12 left-14 right-14 flex items-end justify-between">
+          <div className="space-y-2 text-[15px]">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+            <ContactItem
+              icon={Globe}
+              value={data.website}
+              template={template}
+            />
           </div>
 
-          <div>
-            <h2 className="text-4xl font-black tracking-[-0.05em]">
-              {name}
-            </h2>
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
+    );
+  }
 
+  if (template.layout === 'prism') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-0 opacity-70"
+          style={{
+            backgroundImage: `
+              linear-gradient(${template.accent}12 1px, transparent 1px),
+              linear-gradient(90deg, ${template.accent}12 1px, transparent 1px)
+            `,
+            backgroundSize: '48px 48px',
+          }}
+        />
+
+        <div
+          className="absolute -left-32 -top-32 h-[560px] w-[560px] rounded-full blur-3xl"
+          style={{
+            background: `radial-gradient(circle, ${template.accent}45, transparent 65%)`,
+          }}
+        />
+
+        <div
+          className="absolute right-[-180px] top-[-220px] h-[600px] w-[600px] rotate-45 border-[90px]"
+          style={{
+            borderColor: `${template.accent}14`,
+          }}
+        />
+
+        <div className="absolute left-12 top-12 flex items-center gap-4">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+
+          <div>
             <p
-              className="mt-2 text-sm font-semibold"
+              className="text-xs font-bold uppercase tracking-[0.28em]"
               style={{ color: template.accent }}
             >
-              {role}
+              {data.companyName || 'AHADEX STUDIO'}
             </p>
 
             <p
               className="mt-1 text-xs"
               style={{ color: template.muted }}
             >
-              {company}
+              DIGITAL IDENTITY
             </p>
           </div>
-
-          <div className="flex items-end justify-between gap-5">
-            <div
-              className="space-y-1 text-[8px]"
-              style={{ color: template.muted }}
-            >
-              <ContactItem
-                icon={Phone}
-                value={data.phone}
-                template={template}
-              />
-              <ContactItem
-                icon={Mail}
-                value={data.email}
-                template={template}
-              />
-              <ContactItem
-                icon={Globe}
-                value={data.website}
-                template={template}
-              />
-            </div>
-
-            <QrVisual
-              value={
-                data.website ||
-                data.email ||
-                data.phone ||
-                data.fullName ||
-                'https://ahadex.fun'
-              }
-            />
-          </div>
         </div>
-      </CardBase>
-    );
-  }
 
-  if (template.layout === 'luxury') {
-    return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div
-          className="absolute inset-5 rounded-[20px] border"
-          style={{ borderColor: `${template.accent}45` }}
-        />
-
-        <div className="relative flex h-full flex-col justify-center px-12">
-          <div
-            className="absolute right-9 top-9 flex h-14 w-14 items-center justify-center rounded-full border font-serif text-base"
-            style={{
-              borderColor: `${template.accent}70`,
-              color: template.accent,
-            }}
-          >
-            {initials}
-          </div>
-
+        <div className="absolute bottom-14 left-14">
           <p
-            className="text-[8px] font-bold uppercase tracking-[0.45em]"
+            className="mb-3 text-sm font-bold uppercase tracking-[0.35em]"
             style={{ color: template.accent }}
           >
-            {company}
+            {data.jobTitle || 'CREATIVE PROFESSIONAL'}
           </p>
 
-          <h2 className="mt-4 font-serif text-4xl tracking-wide">
-            {name}
-          </h2>
-
-          <p
-            className="mt-2 text-[9px] uppercase tracking-[0.22em]"
-            style={{ color: template.muted }}
-          >
-            {role}
-          </p>
+          <h1 className="text-[64px] font-black leading-[0.9] tracking-[-0.06em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
 
           <div
-            className="my-5 h-px w-20"
+            className="mt-6 h-px w-64"
             style={{ background: template.accent }}
           />
 
-          <div
-            className="flex flex-wrap gap-x-5 gap-y-2 text-[8px]"
+          <p
+            className="mt-4 max-w-[520px] text-[14px] leading-6"
             style={{ color: template.muted }}
           >
+            {data.bio ||
+              'Create a powerful professional identity with a modern digital-first business card.'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-14 right-14">
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'brutalist') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute left-0 top-0 h-full w-[24px]"
+          style={{ background: template.accent }}
+        />
+
+        <div
+          className="absolute right-0 top-0 h-full w-[10px]"
+          style={{ background: template.accent }}
+        />
+
+        <div className="absolute left-16 top-12">
+          <p className="text-[12px] font-bold uppercase tracking-[0.45em] text-zinc-500">
+            BUSINESS IDENTITY / 01
+          </p>
+
+          <h1 className="mt-9 max-w-[680px] text-[70px] font-black uppercase leading-[0.82] tracking-[-0.075em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-6 inline-block px-4 py-2 text-sm font-black uppercase tracking-[0.22em]"
+            style={{
+              background: template.accent,
+              color: '#09090b',
+            }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-12 left-16 right-16 flex items-end justify-between">
+          <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-[13px]">
             <ContactItem
               icon={Phone}
               value={data.phone}
@@ -661,559 +802,277 @@ const OneSideCard = ({
               value={data.website}
               template={template}
             />
+            <ContactItem
+              icon={MapPin}
+              value={data.address}
+              template={template}
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <LogoVisual
+              logoUrl={data.logoUrl}
+              companyName={data.companyName}
+              template={template}
+            />
+            {qrSrc ? <QrVisual src={qrSrc} /> : null}
           </div>
         </div>
-      </CardBase>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'signature') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-7 rounded-[2px] border"
+          style={{ borderColor: `${template.accent}55` }}
+        />
+
+        <div
+          className="absolute left-12 top-12 text-[90px] font-black leading-none"
+          style={{
+            color: `${template.accent}20`,
+          }}
+        >
+          {initials}
+        </div>
+
+        <div className="absolute right-14 top-14">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+        </div>
+
+        <div className="absolute left-14 bottom-14">
+          <p
+            className="text-xs font-bold uppercase tracking-[0.38em]"
+            style={{ color: template.accent }}
+          >
+            {data.companyName || 'SIGNATURE STUDIO'}
+          </p>
+
+          <h1 className="mt-3 text-[58px] font-black tracking-[-0.05em]">
+            {data.fullName || 'Your Name'}
+          </h1>
+
+          <p
+            className="mt-2 text-[17px] uppercase tracking-[0.2em]"
+            style={{ color: template.muted }}
+          >
+            {data.jobTitle || 'Your Position'}
+          </p>
+
+          <div className="mt-7 flex gap-7 text-[13px]">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+          </div>
+        </div>
+
+        <div className="absolute bottom-12 right-14">
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
     );
   }
 
   if (template.layout === 'portrait') {
     return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div className="relative flex h-full items-center gap-8 p-10">
-          <ProfileVisual
-            photoUrl={data.photoUrl}
-            accent={template.accent}
-            large
-          />
-
-          <div className="min-w-0">
-            <p
-              className="text-[8px] font-black uppercase tracking-[0.32em]"
-              style={{ color: template.accent }}
-            >
-              {company}
-            </p>
-
-            <h2 className="mt-3 text-4xl font-black tracking-tight">
-              {name}
-            </h2>
-
-            <p
-              className="mt-2 text-sm font-semibold"
-              style={{ color: template.accent }}
-            >
-              {role}
-            </p>
-
+      <CardFrame template={template} cardRef={cardRef}>
+        <div className="absolute inset-y-0 left-0 w-[38%]">
+          {data.photoUrl ? (
+            <img
+              src={data.photoUrl}
+              alt=""
+              className="h-full w-full object-cover"
+            />
+          ) : (
             <div
-              className="mt-5 space-y-2 text-[8px]"
-              style={{ color: template.muted }}
+              className="flex h-full w-full items-center justify-center"
+              style={{ background: template.accentSoft }}
             >
-              <ContactItem
-                icon={Phone}
-                value={data.phone}
-                template={template}
-              />
-              <ContactItem
-                icon={Mail}
-                value={data.email}
-                template={template}
-              />
-              <ContactItem
-                icon={Globe}
-                value={data.website}
-                template={template}
-              />
-              <ContactItem
-                icon={MapPin}
-                value={data.address}
-                template={template}
+              <UserRound
+                className="h-28 w-28"
+                style={{ color: template.accent }}
               />
             </div>
+          )}
+
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `linear-gradient(90deg, transparent 50%, ${template.background} 100%)`,
+            }}
+          />
+        </div>
+
+        <div className="absolute left-[42%] right-12 top-12">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+
+          <p
+            className="mt-8 text-xs font-bold uppercase tracking-[0.3em]"
+            style={{ color: template.accent }}
+          >
+            {data.companyName || 'YOUR COMPANY'}
+          </p>
+
+          <h1 className="mt-2 text-[50px] font-black leading-none tracking-[-0.055em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-3 text-[17px]"
+            style={{ color: template.muted }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-12 left-[42%] right-12">
+          <div className="grid grid-cols-2 gap-x-5 gap-y-2 text-[12px]">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+            <ContactItem
+              icon={Globe}
+              value={data.website}
+              template={template}
+            />
+            <ContactItem
+              icon={MapPin}
+              value={data.address}
+              template={template}
+            />
           </div>
         </div>
-      </CardBase>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'luxury') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-7 rounded-2xl border"
+          style={{ borderColor: `${template.accent}40` }}
+        />
+
+        <div
+          className="absolute left-0 top-0 h-full w-[5px]"
+          style={{ background: template.accent }}
+        />
+
+        <div className="absolute left-14 top-14">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+        </div>
+
+        <div className="absolute left-14 top-44">
+          <h1 className="text-[54px] font-black tracking-[-0.055em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-3 text-[16px] uppercase tracking-[0.25em]"
+            style={{ color: template.accent }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-14 left-14 flex gap-7 text-[13px]">
+          <ContactItem
+            icon={Phone}
+            value={data.phone}
+            template={template}
+          />
+          <ContactItem
+            icon={Mail}
+            value={data.email}
+            template={template}
+          />
+          <ContactItem
+            icon={Globe}
+            value={data.website}
+            template={template}
+          />
+        </div>
+
+        <div className="absolute right-14 bottom-14">
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
     );
   }
 
   if (template.layout === 'editorial') {
     return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
+      <CardFrame template={template} cardRef={cardRef}>
         <div
-          className="absolute inset-y-0 left-0 w-[30%]"
+          className="absolute left-0 top-0 h-full w-[34%]"
           style={{ background: template.accentSoft }}
         />
 
-        <div className="relative flex h-full">
-          <div className="flex w-[30%] flex-col justify-end p-9">
-            {data.photoUrl ? (
-              <img
-                src={data.photoUrl}
-                alt=""
-                className="mb-4 h-20 w-20 rounded-2xl object-cover"
-              />
-            ) : (
-              <span
-                className="text-4xl font-black"
-                style={{ color: template.accent }}
-              >
-                {initials}
-              </span>
-            )}
-
-            <span
-              className="mt-3 text-[7px] font-bold uppercase tracking-[0.25em]"
-              style={{ color: template.muted }}
-            >
-              IDENTITY
-            </span>
-          </div>
-
-          <div className="flex flex-1 flex-col justify-center p-10">
-            <p
-              className="text-[8px] font-black uppercase tracking-[0.3em]"
-              style={{ color: template.accent }}
-            >
-              {company}
-            </p>
-
-            <h2 className="mt-3 text-4xl font-black tracking-tight">
-              {name}
-            </h2>
-
-            <p
-              className="mt-2 text-sm font-semibold"
-              style={{ color: template.muted }}
-            >
-              {role}
-            </p>
-
-            <div className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-[8px]">
-              <ContactItem
-                icon={Phone}
-                value={data.phone}
-                template={template}
-              />
-              <ContactItem
-                icon={Mail}
-                value={data.email}
-                template={template}
-              />
-              <ContactItem
-                icon={Globe}
-                value={data.website}
-                template={template}
-              />
-              <ContactItem
-                icon={MapPin}
-                value={data.address}
-                template={template}
-              />
-            </div>
-          </div>
-        </div>
-      </CardBase>
-    );
-  }
-
-  if (template.layout === 'grid') {
-    return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
         <div
-          className="absolute inset-0 opacity-25"
-          style={{
-            backgroundImage: `linear-gradient(${template.accent}18 1px, transparent 1px), linear-gradient(90deg, ${template.accent}18 1px, transparent 1px)`,
-            backgroundSize: '50px 50px',
-          }}
-        />
-
-        <div className="relative flex h-full flex-col justify-between p-10">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[8px] font-black uppercase tracking-[0.32em]"
-              style={{ color: template.accent }}
-            >
-              AHADEX / {company}
-            </span>
-
-            <Building2
-              className="h-5 w-5"
-              style={{ color: template.accent }}
-            />
-          </div>
-
-          <div>
-            <p className="text-[8px] uppercase tracking-[0.22em] opacity-60">
-              {role}
-            </p>
-
-            <h2 className="mt-2 text-4xl font-black">
-              {name}
-            </h2>
-
-            <div
-              className="mt-5 h-px w-full"
-              style={{ background: `${template.accent}55` }}
-            />
-          </div>
-
-          <div
-            className="grid grid-cols-3 gap-3 text-[7px]"
-            style={{ color: template.muted }}
-          >
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-          </div>
-        </div>
-      </CardBase>
-    );
-  }
-
-  if (template.layout === 'asymmetric') {
-    return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div
-          className="absolute right-0 top-0 h-full w-[38%]"
-          style={{ background: `${template.accent}12` }}
-        />
-
-        <div className="relative flex h-full">
-          <div className="flex w-[62%] flex-col justify-center p-10">
-            <p
-              className="text-[8px] font-black uppercase tracking-[0.3em]"
-              style={{ color: template.accent }}
-            >
-              CREATIVE OFFICE
-            </p>
-
-            <h2 className="mt-3 text-4xl font-black">
-              {name}
-            </h2>
-
-            <p
-              className="mt-2 text-sm"
-              style={{ color: template.muted }}
-            >
-              {role}
-            </p>
-
-            <div className="mt-6 space-y-2 text-[8px]">
-              <ContactItem
-                icon={Mail}
-                value={data.email}
-                template={template}
-              />
-              <ContactItem
-                icon={Globe}
-                value={data.website}
-                template={template}
-              />
-              <ContactItem
-                icon={Phone}
-                value={data.phone}
-                template={template}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-1 items-center justify-center">
-            <ProfileVisual
-              photoUrl={data.photoUrl}
-              accent={template.accent}
-              large
-            />
-          </div>
-        </div>
-      </CardBase>
-    );
-  }
-
-  if (template.layout === 'glass') {
-    return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div
-          className="relative m-5 flex h-[calc(100%-40px)] flex-col justify-between rounded-[22px] border p-7 backdrop-blur-xl"
-          style={{
-            borderColor: `${template.accent}33`,
-            background: 'rgba(255,255,255,0.045)',
-          }}
-        >
-          <div className="flex items-center gap-4">
-            <ProfileVisual
-              photoUrl={data.photoUrl}
-              accent={template.accent}
-            />
-
-            <div>
-              <p className="text-[7px] uppercase tracking-[0.25em] opacity-50">
-                DIGITAL IDENTITY
-              </p>
-
-              <p className="mt-1 text-xs font-bold">
-                {company}
-              </p>
-            </div>
-          </div>
-
-          <div>
-            <h2 className="text-4xl font-black">{name}</h2>
-
-            <p
-              className="mt-2 text-sm font-semibold"
-              style={{ color: template.accent }}
-            >
-              {role}
-            </p>
-          </div>
-
-          <div
-            className="grid grid-cols-2 gap-3 text-[8px]"
-            style={{ color: template.muted }}
-          >
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-            <ContactItem
-              icon={MapPin}
-              value={data.address}
-              template={template}
-            />
-          </div>
-        </div>
-      </CardBase>
-    );
-  }
-
-  if (template.layout === 'frame') {
-    return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div
-          className="absolute inset-5 rounded-[20px] border-2"
-          style={{ borderColor: `${template.accent}44` }}
-        />
-
-        <div
-          className="absolute left-8 top-8 h-9 w-9 border-l-2 border-t-2"
-          style={{ borderColor: template.accent }}
-        />
-
-        <div
-          className="absolute bottom-8 right-8 h-9 w-9 border-b-2 border-r-2"
-          style={{ borderColor: template.accent }}
-        />
-
-        <div className="relative flex h-full flex-col items-center justify-center px-10 text-center">
-          <p
-            className="text-[8px] font-black uppercase tracking-[0.42em]"
-            style={{ color: template.accent }}
-          >
-            {company}
-          </p>
-
-          <h2 className="mt-4 text-4xl font-black">{name}</h2>
-
-          <p
-            className="mt-2 text-sm font-semibold"
-            style={{ color: template.muted }}
-          >
-            {role}
-          </p>
-
-          <div
-            className="my-5 h-px w-20"
-            style={{ background: template.accent }}
-          />
-
-          <div
-            className="flex flex-wrap justify-center gap-x-5 gap-y-2 text-[8px]"
-            style={{ color: template.muted }}
-          >
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-          </div>
-        </div>
-      </CardBase>
-    );
-  }
-
-  if (template.layout === 'bold') {
-    return (
-      <CardBase
-        template={template}
-        side="front"
-        cardRef={cardRef}
-      >
-        <div
-          className="absolute right-0 top-0 h-full w-[38%]"
-          style={{ background: `${template.accent}10` }}
-        />
-
-        <div
-          className="absolute bottom-0 left-0 h-1.5 w-[48%]"
+          className="absolute left-[34%] top-0 h-full w-[2px]"
           style={{ background: template.accent }}
         />
 
-        <div className="relative flex h-full flex-col justify-between p-10">
-          <div className="flex items-center justify-between">
-            <span
-              className="text-[8px] font-black uppercase tracking-[0.35em]"
-              style={{ color: template.accent }}
-            >
-              AHADEX
-            </span>
+        <div className="absolute left-14 top-14">
+          <p
+            className="text-xs font-bold uppercase tracking-[0.3em]"
+            style={{ color: template.accent }}
+          >
+            {data.companyName || 'STUDIO'}
+          </p>
 
-            <Sparkles
-              className="h-5 w-5"
-              style={{ color: template.accent }}
-            />
-          </div>
+          <h1 className="mt-10 max-w-[580px] text-[58px] font-black leading-[0.88] tracking-[-0.065em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
 
-          <div>
-            <p
-              className="text-[8px] font-bold uppercase tracking-[0.18em]"
-              style={{ color: template.muted }}
-            >
-              {role}
-            </p>
-
-            <h2 className="mt-2 text-4xl font-black uppercase tracking-[-0.04em]">
-              {name}
-            </h2>
-
-            <p
-              className="mt-3 text-sm font-semibold"
-              style={{ color: template.accent }}
-            >
-              {company}
-            </p>
-          </div>
-
-          <div
-            className="grid grid-cols-3 gap-3 text-[7px]"
+          <p
+            className="mt-5 text-[16px]"
             style={{ color: template.muted }}
           >
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-          </div>
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
         </div>
-      </CardBase>
-    );
-  }
 
-  return (
-    <CardBase
-      template={template}
-      side="front"
-      cardRef={cardRef}
-    >
-      <div
-        className="absolute inset-y-0 left-0 w-[42%]"
-        style={{ background: template.accentSoft }}
-      />
-
-      <div className="relative flex h-full">
-        <div className="flex w-[42%] flex-col items-center justify-center text-center">
+        <div className="absolute right-14 top-14">
           <ProfileVisual
             photoUrl={data.photoUrl}
             accent={template.accent}
             large
           />
-
-          <p
-            className="mt-4 text-[7px] font-black uppercase tracking-[0.28em]"
-            style={{ color: template.accent }}
-          >
-            {company}
-          </p>
         </div>
 
-        <div className="flex flex-1 flex-col justify-center p-10">
-          <p
-            className="text-[7px] font-bold uppercase tracking-[0.25em]"
-            style={{ color: template.accent }}
-          >
-            PROFESSIONAL
-          </p>
-
-          <h2 className="mt-3 text-4xl font-black">{name}</h2>
-
-          <p
-            className="mt-2 text-sm"
-            style={{ color: template.muted }}
-          >
-            {role}
-          </p>
-
-          <div
-            className="mt-6 space-y-2 text-[8px]"
-            style={{ color: template.muted }}
-          >
+        <div className="absolute bottom-14 left-14 right-14 flex items-end justify-between">
+          <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-[13px]">
             <ContactItem
               icon={Phone}
               value={data.phone}
@@ -1227,144 +1086,6 @@ const OneSideCard = ({
             <ContactItem
               icon={Globe}
               value={data.website}
-              template={template}
-            />
-            <ContactItem
-              icon={MapPin}
-              value={data.address}
-              template={template}
-            />
-          </div>
-        </div>
-      </div>
-    </CardBase>
-  );
-};
-
-const TwoSideFront = ({
-  template,
-  data,
-  cardRef,
-}: {
-  template: TemplateStyle;
-  data: CardData;
-  cardRef?: React.RefObject<HTMLDivElement | null>;
-}) => (
-  <CardBase
-    template={template}
-    side="front"
-    cardRef={cardRef}
-  >
-    <div className="relative flex h-full items-center gap-8 p-10">
-      <ProfileVisual
-        photoUrl={data.photoUrl}
-        accent={template.accent}
-        large
-      />
-
-      <div className="min-w-0">
-        <p
-          className="text-[8px] font-black uppercase tracking-[0.34em]"
-          style={{ color: template.accent }}
-        >
-          {data.companyName || 'YOUR COMPANY'}
-        </p>
-
-        <h2 className="mt-3 text-4xl font-black">
-          {data.fullName || 'Your Name'}
-        </h2>
-
-        <p
-          className="mt-2 text-sm font-semibold"
-          style={{ color: template.accent }}
-        >
-          {data.jobTitle || 'Professional Title'}
-        </p>
-
-        <p
-          className="mt-4 max-w-md text-[8px] leading-5"
-          style={{ color: template.muted }}
-        >
-          {data.bio ||
-            'Your professional introduction appears here.'}
-        </p>
-      </div>
-    </div>
-  </CardBase>
-);
-
-const TwoSideBack = ({
-  template,
-  data,
-  cardRef,
-}: {
-  template: TemplateStyle;
-  data: CardData;
-  cardRef?: React.RefObject<HTMLDivElement | null>;
-}) => {
-  const qrValue =
-    data.website ||
-    data.email ||
-    data.phone ||
-    data.fullName ||
-    'https://ahadex.fun';
-
-  return (
-    <CardBase
-      template={template}
-      side="back"
-      cardRef={cardRef}
-    >
-      <div
-        className="absolute inset-y-0 right-0 w-[36%]"
-        style={{ background: template.accentSoft }}
-      />
-
-      <div className="relative flex h-full items-center justify-between gap-8 p-10">
-        <div className="min-w-0">
-          <p
-            className="text-[8px] font-black uppercase tracking-[0.35em]"
-            style={{ color: template.accent }}
-          >
-            CONTACT
-          </p>
-
-          <h2 className="mt-3 text-2xl font-black">
-            {data.companyName || 'Your Company'}
-          </h2>
-
-          <div
-            className="mt-6 space-y-3 text-[9px]"
-            style={{ color: template.muted }}
-          >
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={MessageCircle}
-              value={data.whatsapp}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-            <ContactItem
-              icon={MapPin}
-              value={data.address}
-              template={template}
-            />
-            <ContactItem
-              icon={Linkedin}
-              value={data.linkedin}
               template={template}
             />
             <ContactItem
@@ -1373,268 +1094,713 @@ const TwoSideBack = ({
               template={template}
             />
           </div>
+
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
         </div>
+      </CardFrame>
+    );
+  }
 
-        <div className="flex shrink-0 flex-col items-center">
-          <QrVisual value={qrValue} />
+  if (template.layout === 'minimal') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div className="absolute left-14 top-14">
+          <p className="text-xs font-bold uppercase tracking-[0.35em] text-slate-400">
+            {data.companyName || 'COMPANY'}
+          </p>
 
-          <span
-            className="mt-3 text-[7px] font-bold uppercase tracking-[0.2em]"
+          <h1 className="mt-12 text-[56px] font-black leading-none tracking-[-0.065em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-3 text-[16px]"
             style={{ color: template.muted }}
           >
-            Scan to connect
-          </span>
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute right-14 top-14">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+        </div>
+
+        <div
+          className="absolute bottom-14 left-14 right-14 h-px"
+          style={{ background: template.accentSoft }}
+        />
+
+        <div className="absolute bottom-6 left-14 right-14 flex justify-between text-[12px]">
+          <ContactItem
+            icon={Phone}
+            value={data.phone}
+            template={template}
+          />
+          <ContactItem
+            icon={Mail}
+            value={data.email}
+            template={template}
+          />
+          <ContactItem
+            icon={Globe}
+            value={data.website}
+            template={template}
+          />
+        </div>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'grid') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-0 opacity-50"
+          style={{
+            backgroundImage: `
+              linear-gradient(${template.accent}14 1px, transparent 1px),
+              linear-gradient(90deg, ${template.accent}14 1px, transparent 1px)
+            `,
+            backgroundSize: '42px 42px',
+          }}
+        />
+
+        <div className="absolute left-12 top-12">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+        </div>
+
+        <div className="absolute left-12 bottom-14">
+          <p
+            className="text-xs font-bold uppercase tracking-[0.28em]"
+            style={{ color: template.accent }}
+          >
+            {data.jobTitle || 'PROFESSIONAL'}
+          </p>
+
+          <h1 className="mt-3 text-[52px] font-black tracking-[-0.06em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+        </div>
+
+        <div className="absolute right-12 top-14 w-[330px]">
+          <div
+            className="rounded-2xl border p-5 backdrop-blur-xl"
+            style={{
+              borderColor: `${template.accent}35`,
+              background: `${template.accent}0a`,
+            }}
+          >
+            <div className="space-y-4 text-[13px]">
+              <ContactItem
+                icon={Phone}
+                value={data.phone}
+                template={template}
+              />
+              <ContactItem
+                icon={MessageCircle}
+                value={data.whatsapp}
+                template={template}
+              />
+              <ContactItem
+                icon={Mail}
+                value={data.email}
+                template={template}
+              />
+              <ContactItem
+                icon={Globe}
+                value={data.website}
+                template={template}
+              />
+              <ContactItem
+                icon={MapPin}
+                value={data.address}
+                template={template}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="absolute bottom-12 right-12">
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'asymmetric') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute right-0 top-0 h-full w-[34%]"
+          style={{ background: template.accentSoft }}
+        />
+
+        <div
+          className="absolute -right-24 -top-24 h-96 w-96 rounded-full border-[80px]"
+          style={{ borderColor: `${template.accent}20` }}
+        />
+
+        <div className="absolute left-14 top-14">
+          <ProfileVisual
+            photoUrl={data.photoUrl}
+            accent={template.accent}
+            large
+          />
+        </div>
+
+        <div className="absolute left-14 top-52">
+          <h1 className="text-[58px] font-black leading-none tracking-[-0.065em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-4 text-[17px] font-semibold"
+            style={{ color: template.accent }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-14 left-14">
+          <p
+            className="mb-3 text-xs font-bold uppercase tracking-[0.25em]"
+            style={{ color: template.muted }}
+          >
+            {data.companyName || 'YOUR COMPANY'}
+          </p>
+
+          <div className="flex gap-6 text-[13px]">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+          </div>
+        </div>
+
+        <div className="absolute right-14 bottom-14">
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'glass') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(circle at 15% 20%, rgba(255,255,255,.12), transparent 30%), radial-gradient(circle at 85% 80%, rgba(148,163,184,.12), transparent 35%)',
+          }}
+        />
+
+        <div className="absolute inset-10 rounded-[28px] border border-white/10 bg-white/[0.035] p-10 backdrop-blur-2xl">
+          <div className="flex items-start justify-between">
+            <LogoVisual
+              logoUrl={data.logoUrl}
+              companyName={data.companyName}
+              template={template}
+            />
+
+            <ProfileVisual
+              photoUrl={data.photoUrl}
+              accent={template.accent}
+            />
+          </div>
+
+          <div className="mt-12">
+            <h1 className="text-[50px] font-black tracking-[-0.06em]">
+              {data.fullName || 'YOUR NAME'}
+            </h1>
+
+            <p
+              className="mt-2 text-[16px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'YOUR POSITION'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-8 left-10 right-10 flex justify-between text-[12px]">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+            <ContactItem
+              icon={Globe}
+              value={data.website}
+              template={template}
+            />
+          </div>
+        </div>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'frame') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute inset-8 border-2"
+          style={{ borderColor: `${template.accent}45` }}
+        />
+
+        <div className="absolute left-14 top-14">
+          <LogoVisual
+            logoUrl={data.logoUrl}
+            companyName={data.companyName}
+            template={template}
+          />
+        </div>
+
+        <div className="absolute left-14 top-48">
+          <h1 className="text-[55px] font-black tracking-[-0.06em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-3 text-[16px] uppercase tracking-[0.22em]"
+            style={{ color: template.accent }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute right-14 top-14">
+          <ProfileVisual
+            photoUrl={data.photoUrl}
+            accent={template.accent}
+            large
+          />
+        </div>
+
+        <div className="absolute bottom-14 left-14 right-14 flex items-center justify-between text-[12px]">
+          <div className="flex gap-7">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+            <ContactItem
+              icon={Globe}
+              value={data.website}
+              template={template}
+            />
+          </div>
+
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
+    );
+  }
+
+  if (template.layout === 'bold') {
+    return (
+      <CardFrame template={template} cardRef={cardRef}>
+        <div
+          className="absolute left-0 top-0 h-full w-[12px]"
+          style={{ background: template.accent }}
+        />
+
+        <div className="absolute left-16 top-12">
+          <p
+            className="text-xs font-black uppercase tracking-[0.35em]"
+            style={{ color: template.accent }}
+          >
+            {data.companyName || 'STATEMENT'}
+          </p>
+
+          <h1 className="mt-12 max-w-[760px] text-[76px] font-black uppercase leading-[0.8] tracking-[-0.08em]">
+            {data.fullName || 'YOUR NAME'}
+          </h1>
+
+          <p
+            className="mt-7 text-[18px] font-bold uppercase tracking-[0.22em]"
+            style={{ color: template.muted }}
+          >
+            {data.jobTitle || 'YOUR POSITION'}
+          </p>
+        </div>
+
+        <div className="absolute bottom-14 left-16 right-16 flex items-center justify-between">
+          <div className="flex gap-8 text-[13px]">
+            <ContactItem
+              icon={Phone}
+              value={data.phone}
+              template={template}
+            />
+            <ContactItem
+              icon={Mail}
+              value={data.email}
+              template={template}
+            />
+          </div>
+
+          {qrSrc ? <QrVisual src={qrSrc} /> : null}
+        </div>
+      </CardFrame>
+    );
+  }
+
+  return (
+    <CardFrame template={template} cardRef={cardRef}>
+      <div
+        className="absolute inset-y-0 left-0 w-[42%]"
+        style={{ background: template.accentSoft }}
+      />
+
+      <div className="absolute left-14 top-14">
+        <LogoVisual
+          logoUrl={data.logoUrl}
+          companyName={data.companyName}
+          template={template}
+        />
+
+        <h1 className="mt-12 text-[52px] font-black leading-none tracking-[-0.06em]">
+          {data.fullName || 'YOUR NAME'}
+        </h1>
+
+        <p
+          className="mt-3 text-[16px]"
+          style={{ color: template.accent }}
+        >
+          {data.jobTitle || 'YOUR POSITION'}
+        </p>
+      </div>
+
+      <div className="absolute right-14 top-14">
+        <ProfileVisual
+          photoUrl={data.photoUrl}
+          accent={template.accent}
+          large
+        />
+      </div>
+
+      <div className="absolute bottom-14 right-14 w-[430px]">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[12px]">
+          <ContactItem
+            icon={Phone}
+            value={data.phone}
+            template={template}
+          />
+          <ContactItem
+            icon={MessageCircle}
+            value={data.whatsapp}
+            template={template}
+          />
+          <ContactItem
+            icon={Mail}
+            value={data.email}
+            template={template}
+          />
+          <ContactItem
+            icon={Globe}
+            value={data.website}
+            template={template}
+          />
+          <ContactItem
+            icon={MapPin}
+            value={data.address}
+            template={template}
+          />
+          <ContactItem
+            icon={Linkedin}
+            value={data.linkedin}
+            template={template}
+          />
         </div>
       </div>
-    </CardBase>
+
+      <div className="absolute bottom-14 left-14">
+        {qrSrc ? <QrVisual src={qrSrc} /> : null}
+      </div>
+    </CardFrame>
   );
-};
-
-const cloneForExport = (
-  source: HTMLDivElement,
-): HTMLDivElement => {
-  const clone = source.cloneNode(true) as HTMLDivElement;
-
-  clone.style.width = `${CARD_WIDTH_PX}px`;
-  clone.style.height = `${CARD_HEIGHT_PX}px`;
-  clone.style.maxWidth = 'none';
-  clone.style.minWidth = `${CARD_WIDTH_PX}px`;
-  clone.style.aspectRatio = 'auto';
-  clone.style.borderRadius = '0';
-  clone.style.position = 'fixed';
-  clone.style.left = '-100000px';
-  clone.style.top = '0';
-  clone.style.zIndex = '-1';
-  clone.style.overflow = 'hidden';
-
-  document.body.appendChild(clone);
-
-  return clone;
 };
 
 export const VisitingCardEditorPage: React.FC = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const { templateId } = useParams<{
-    templateId?: string;
-  }>();
-
-  const toast = useToast();
-
-  const mode = getModeFromPath(location.pathname);
+  const { templateId } = useParams<{ templateId: string }>();
+  const { addToast } = useToast();
 
   const template = useMemo(
     () => getTemplate(templateId),
     [templateId],
   );
 
-  const [data, setData] = useState<CardData>({
-    ...EMPTY_CARD_DATA,
-  });
-  const [side, setSide] = useState<CardSide>('front');
-  const [busy, setBusy] = useState(false);
-  const [built, setBuilt] = useState(false);
+  const [data, setData] = useState<CardData>(EMPTY_CARD_DATA);
+  const [qrSrc, setQrSrc] = useState('');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportType, setExportType] = useState<
+    'jpg' | 'pdf' | null
+  >(null);
 
-  const frontRef = useRef<HTMLDivElement | null>(null);
-  const backRef = useRef<HTMLDivElement | null>(null);
+  const cardRef = useRef<HTMLDivElement | null>(null);
+  const exportHostRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
-    setData({ ...EMPTY_CARD_DATA });
-    setSide('front');
-    setBuilt(false);
-  }, [templateId, mode]);
-
-  const notify = (
-    title: string,
-    message: string,
-    type: 'success' | 'error' | 'warning' | 'info' = 'info',
-  ) => {
-    toast.addToast(title, message, type);
-  };
-
-  const update = (
+  const updateField = (
     key: keyof CardData,
-    value: string | null,
+    value: string,
   ) => {
     setData((current) => ({
       ...current,
       [key]: value,
     }));
-    setBuilt(false);
   };
 
-  const handleImageUpload = (
-    key: 'photoUrl' | 'logoUrl',
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0];
+  const updateFile =
+    (key: 'photoUrl' | 'logoUrl') =>
+    async (
+      event: React.ChangeEvent<HTMLInputElement>,
+    ) => {
+      const file = event.target.files?.[0];
 
-    if (!file) return;
+      if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      notify(
-        'Invalid image',
-        'Please select a valid image file.',
-        'error',
-      );
-      event.target.value = '';
-      return;
-    }
+      if (!file.type.startsWith('image/')) {
+        addToast(
+          'Invalid image',
+          'Please select a JPG, PNG, WebP or compatible image file.',
+          'error',
+        );
+        return;
+      }
 
-    if (file.size > 8 * 1024 * 1024) {
-      notify(
-        'Image too large',
-        'Image must be 8MB or smaller.',
-        'error',
-      );
-      event.target.value = '';
-      return;
-    }
+      try {
+        const url = await readFileAsDataUrl(file);
 
-    const reader = new FileReader();
-
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        update(key, reader.result);
+        setData((current) => ({
+          ...current,
+          [key]: url,
+        }));
+      } catch {
+        addToast(
+          'Upload failed',
+          'The selected image could not be loaded.',
+          'error',
+        );
+      } finally {
+        event.target.value = '';
       }
     };
 
-    reader.onerror = () => {
-      notify(
-        'Upload failed',
-        'Unable to read this image file.',
-        'error',
-      );
-    };
+  useEffect(() => {
+    let active = true;
 
-    reader.readAsDataURL(file);
-    event.target.value = '';
-  };
+    const qrPayload = [
+      data.fullName,
+      data.companyName,
+      data.phone,
+      data.whatsapp,
+      data.email,
+      data.website,
+      data.linkedin,
+      data.instagram,
+      data.address,
+    ]
+      .filter((value) => value.trim())
+      .join(' | ');
 
-  const buildCard = () => {
-    setBuilt(true);
+    const value = qrPayload || 'https://ahadex.fun';
 
-    notify(
-      'Card updated',
-      'Your live card preview has been updated.',
-      'success',
-    );
-  };
-
-  const resetCard = () => {
-    setData({ ...EMPTY_CARD_DATA });
-    setSide('front');
-    setBuilt(false);
-
-    notify(
-      'Fields cleared',
-      'Your card information has been reset.',
-      'info',
-    );
-  };
-
-  const getExportSource = (
-    targetSide: CardSide,
-  ): HTMLDivElement | null => {
-    return targetSide === 'front'
-      ? frontRef.current
-      : backRef.current;
-  };
-
-  const renderExportJpeg = async (
-    targetSide: CardSide,
-  ): Promise<string> => {
-    const source = getExportSource(targetSide);
-
-    if (!source) {
-      throw new Error(
-        `Unable to find ${targetSide} card preview.`,
-      );
-    }
-
-    const clone = cloneForExport(source);
-
-    try {
-      await new Promise<void>((resolve) => {
-        requestAnimationFrame(() => resolve());
+    QRCode.toDataURL(value, {
+      width: 700,
+      margin: 2,
+      errorCorrectionLevel: 'H',
+      color: {
+        dark: '#111827',
+        light: '#ffffff',
+      },
+    })
+      .then((url) => {
+        if (active) setQrSrc(url);
+      })
+      .catch(() => {
+        if (active) setQrSrc('');
       });
 
-      return await toJpeg(clone, {
+    return () => {
+      active = false;
+    };
+  }, [
+    data.fullName,
+    data.companyName,
+    data.phone,
+    data.whatsapp,
+    data.email,
+    data.website,
+    data.linkedin,
+    data.instagram,
+    data.address,
+  ]);
+
+  const buildExportSurface = async () => {
+    if (!cardRef.current || !exportHostRef.current) {
+      throw new Error('Card preview is not ready.');
+    }
+
+    const host = exportHostRef.current;
+
+    host.innerHTML = '';
+
+    const exportCard = cardRef.current.cloneNode(
+      true,
+    ) as HTMLDivElement;
+
+    exportCard.style.width = `${CARD_WIDTH_PX}px`;
+    exportCard.style.height = `${CARD_HEIGHT_PX}px`;
+    exportCard.style.minWidth = `${CARD_WIDTH_PX}px`;
+    exportCard.style.maxWidth = `${CARD_WIDTH_PX}px`;
+    exportCard.style.minHeight = `${CARD_HEIGHT_PX}px`;
+    exportCard.style.maxHeight = `${CARD_HEIGHT_PX}px`;
+    exportCard.style.aspectRatio = 'auto';
+    exportCard.style.borderRadius = '0';
+    exportCard.style.position = 'relative';
+    exportCard.style.left = 'auto';
+    exportCard.style.top = 'auto';
+    exportCard.style.transform = 'none';
+    exportCard.style.margin = '0';
+    exportCard.style.boxShadow = 'none';
+
+    host.appendChild(exportCard);
+
+    host.style.display = 'block';
+    host.style.position = 'fixed';
+    host.style.left = '0';
+    host.style.top = '0';
+    host.style.width = `${CARD_WIDTH_PX}px`;
+    host.style.height = `${CARD_HEIGHT_PX}px`;
+    host.style.overflow = 'hidden';
+    host.style.zIndex = '2147483647';
+    host.style.pointerEvents = 'none';
+    host.style.opacity = '1';
+
+    await waitForFonts();
+    await waitForImages(exportCard);
+
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve());
+      });
+    });
+
+    return exportCard;
+  };
+
+  const cleanupExportSurface = () => {
+    if (!exportHostRef.current) return;
+
+    exportHostRef.current.innerHTML = '';
+    exportHostRef.current.style.display = 'none';
+  };
+
+  const renderExportJpeg = async (): Promise<string> => {
+    const exportCard = await buildExportSurface();
+
+    try {
+      const dataUrl = await toJpeg(exportCard, {
         width: CARD_WIDTH_PX,
         height: CARD_HEIGHT_PX,
         quality: 0.98,
         pixelRatio: 1,
         cacheBust: true,
         backgroundColor: template.background,
-        style: {
-          width: `${CARD_WIDTH_PX}px`,
-          height: `${CARD_HEIGHT_PX}px`,
-        },
       });
+
+      if (!dataUrl || dataUrl === 'data:,') {
+        throw new Error('Image export produced an empty file.');
+      }
+
+      return dataUrl;
     } finally {
-      clone.remove();
+      cleanupExportSurface();
     }
   };
 
-  const downloadJpg = async () => {
-    if (busy) return;
+  const downloadDataUrl = (
+    dataUrl: string,
+    filename: string,
+  ) => {
+    const anchor = document.createElement('a');
 
-    setBusy(true);
+    anchor.href = dataUrl;
+    anchor.download = filename;
+    anchor.rel = 'noopener';
+
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  };
+
+  const downloadJpg = async () => {
+    if (isExporting) return;
+
+    setIsExporting(true);
+    setExportType('jpg');
 
     try {
-      const targets: CardSide[] =
-        mode === 'two-side'
-          ? ['front', 'back']
-          : ['front'];
+      const dataUrl = await renderExportJpeg();
 
-      for (let index = 0; index < targets.length; index += 1) {
-        const target = targets[index];
-        const dataUrl = await renderExportJpeg(target);
+      downloadDataUrl(
+        dataUrl,
+        `ahadex-1-side-visiting-card-${templateId || '01'}.jpg`,
+      );
 
-        const anchor = document.createElement('a');
-        anchor.href = dataUrl;
-        anchor.download =
-          mode === 'two-side'
-            ? `ahadex-visiting-card-${target}.jpg`
-            : 'ahadex-visiting-card.jpg';
-
-        document.body.appendChild(anchor);
-        anchor.click();
-        anchor.remove();
-
-        if (index < targets.length - 1) {
-          await new Promise((resolve) =>
-            setTimeout(resolve, 300),
-          );
-        }
-      }
-
-      notify(
+      addToast(
         'JPG ready',
-        mode === 'two-side'
-          ? 'Front and back JPG files were downloaded.'
-          : 'JPG downloaded at 1050 × 600 px.',
+        'Your 1050 × 600 print-ready visiting card has been downloaded.',
         'success',
       );
     } catch (error) {
-      console.error('Visiting card JPG export failed:', error);
+      console.error(error);
 
-      notify(
+      addToast(
         'JPG export failed',
-        'Please try again after the card preview finishes rendering.',
+        'The card could not be rendered. Please try again.',
         'error',
       );
     } finally {
-      setBusy(false);
+      cleanupExportSurface();
+      setIsExporting(false);
+      setExportType(null);
     }
   };
 
   const downloadPdf = async () => {
-    if (busy) return;
+    if (isExporting) return;
 
-    setBusy(true);
+    setIsExporting(true);
+    setExportType('pdf');
 
     try {
+      const dataUrl = await renderExportJpeg();
+
       const pdf = new jsPDF({
         orientation: 'landscape',
         unit: 'in',
@@ -1642,10 +1808,8 @@ export const VisitingCardEditorPage: React.FC = () => {
         compress: true,
       });
 
-      const front = await renderExportJpeg('front');
-
       pdf.addImage(
-        front,
+        dataUrl,
         'JPEG',
         0,
         0,
@@ -1655,147 +1819,131 @@ export const VisitingCardEditorPage: React.FC = () => {
         'FAST',
       );
 
-      if (mode === 'two-side') {
-        const back = await renderExportJpeg('back');
-
-        pdf.addPage(
-          [CARD_WIDTH_IN, CARD_HEIGHT_IN],
-          'landscape',
-        );
-
-        pdf.addImage(
-          back,
-          'JPEG',
-          0,
-          0,
-          CARD_WIDTH_IN,
-          CARD_HEIGHT_IN,
-          undefined,
-          'FAST',
-        );
-      }
-
       pdf.save(
-        mode === 'two-side'
-          ? 'ahadex-visiting-card-2-side.pdf'
-          : 'ahadex-visiting-card-1-side.pdf',
+        `ahadex-1-side-visiting-card-${templateId || '01'}.pdf`,
       );
 
-      notify(
+      addToast(
         'PDF ready',
-        mode === 'two-side'
-          ? 'PDF created with front and back on separate pages.'
-          : 'PDF created at exact 3.5 × 2 inch card size.',
+        'Your exact 3.5 × 2 inch visiting card PDF has been downloaded.',
         'success',
       );
     } catch (error) {
-      console.error('Visiting card PDF export failed:', error);
+      console.error(error);
 
-      notify(
+      addToast(
         'PDF export failed',
-        'Please try again after the card preview finishes rendering.',
+        'The card could not be rendered. Please try again.',
         'error',
       );
     } finally {
-      setBusy(false);
+      cleanupExportSurface();
+      setIsExporting(false);
+      setExportType(null);
     }
   };
 
-  const currentCard =
-    mode === 'two-side'
-      ? side === 'front'
-        ? (
-            <TwoSideFront
-              template={template}
-              data={data}
-              cardRef={frontRef}
-            />
-          )
-        : (
-            <TwoSideBack
-              template={template}
-              data={data}
-              cardRef={backRef}
-            />
-          )
-      : (
-          <OneSideCard
-            template={template}
-            data={data}
-            cardRef={frontRef}
-          />
-        );
+  const resetCard = () => {
+    setData(EMPTY_CARD_DATA);
+    addToast(
+      'Editor reset',
+      'All entered information has been cleared.',
+      'success',
+    );
+  };
 
   return (
     <PageTransition>
       <SEOHead
-        title={`${mode === 'two-side' ? '2-Side' : '1-Side'} Visiting Card Editor | AHADEX TOOLS`}
-        description="Create a professional print-ready visiting card with AHADEX TOOLS. Customize your information, photo and branding, then export JPG or PDF."
-        canonical={`https://ahadex.fun/tools/visiting-card-generator/${mode}/editor/${templateId || '01'}`}
+        title={`${template.name} 1-Side Visiting Card Generator | AHADEX TOOLS`}
+        description={`Create a professional one-sided visiting card using the ${template.name} template. Add your photo, logo, contact information and QR code, then export a print-ready JPG or exact 3.5 × 2 inch PDF.`}
+        keywords={[
+          '1-side visiting card generator',
+          'single side business card generator',
+          'visiting card maker',
+          'business card maker',
+          'print ready visiting card',
+          'JPG visiting card',
+          'PDF visiting card',
+          template.name,
+        ]}
       />
 
-      <main className="min-h-screen px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl">
-          <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      <main className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1500px]">
+          <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() =>
                 navigate(
-                  `/tools/visiting-card-generator/${mode}`,
+                  '/tools/visiting-card-generator/one-side',
                 )
               }
-              className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-cyan-400/30 hover:bg-white/[0.08]"
+              className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-cyan-400/30 hover:bg-white/[0.07]"
             >
               <ArrowLeft className="h-4 w-4" />
-              Back to Templates
+              Back to 1-Side Templates
             </button>
 
-            <div className="flex items-center gap-2 rounded-full border border-cyan-400/15 bg-cyan-400/[0.06] px-4 py-2 text-xs font-bold text-cyan-200">
-              <Palette className="h-3.5 w-3.5" />
-              {template.name}
+            <div className="flex items-center gap-2">
+              <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-300">
+                1-SIDE ONLY
+              </span>
+
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-400">
+                {template.name}
+              </span>
             </div>
-          </header>
+          </div>
 
-          <Reveal>
-            <section className="mb-7">
-              <p
-                className="mb-2 text-xs font-black uppercase tracking-[0.28em]"
-                style={{ color: template.accent }}
+          <div className="mb-7">
+            <div className="flex items-center gap-3">
+              <div
+                className="flex h-11 w-11 items-center justify-center rounded-2xl"
+                style={{
+                  background: `${template.accent}14`,
+                  color: template.accent,
+                }}
               >
-                {mode === 'two-side'
-                  ? 'Two-Side Studio'
-                  : 'Single-Side Studio'}
-              </p>
+                <Palette className="h-5 w-5" />
+              </div>
 
-              <h1 className="text-3xl font-black tracking-tight text-white sm:text-5xl">
-                Build your visiting card
-              </h1>
+              <div>
+                <p
+                  className="text-xs font-bold uppercase tracking-[0.25em]"
+                  style={{ color: template.accent }}
+                >
+                  1-Side Visiting Card
+                </p>
 
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-400 sm:text-base">
-                Your selected template stays intact while your own
-                information, photo and branding are added. Demo
-                gallery content is never carried into your final card.
-              </p>
-            </section>
-          </Reveal>
+                <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
+                  {template.name}
+                </h1>
+              </div>
+            </div>
+
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
+              {template.description} Enter your information, preview the
+              finished card, then export the exact print dimensions.
+            </p>
+          </div>
 
           <div className="grid gap-6 xl:grid-cols-[420px_minmax(0,1fr)]">
-            <section className="rounded-[28px] border border-white/10 bg-white/[0.025] p-5 shadow-2xl backdrop-blur-xl">
+            <section className="rounded-[28px] border border-white/10 bg-slate-950/70 p-5 shadow-2xl backdrop-blur-xl">
               <div className="mb-5 flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-black text-white">
-                    Your information
+                    Card Information
                   </h2>
-
                   <p className="mt-1 text-xs text-slate-500">
-                    Fill only the fields you need.
+                    All fields start empty.
                   </p>
                 </div>
 
                 <button
                   type="button"
                   onClick={resetCard}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-3 py-2 text-xs font-bold text-slate-400 transition hover:border-red-400/20 hover:text-red-300"
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-slate-300 transition hover:bg-white/[0.05]"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
                   Reset
@@ -1804,55 +1952,51 @@ export const VisitingCardEditorPage: React.FC = () => {
 
               <div className="space-y-4">
                 <UploadBox
-                  label="Profile photo"
-                  description="JPG, PNG or WebP · max 8MB"
+                  label="Profile Photo"
+                  description="JPG, PNG or WebP"
                   icon={ImagePlus}
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/*"
                   preview={data.photoUrl}
-                  onChange={(event) =>
-                    handleImageUpload('photoUrl', event)
-                  }
+                  onChange={updateFile('photoUrl')}
                 />
 
                 <UploadBox
-                  label="Company logo"
-                  description="Optional · JPG, PNG or WebP"
+                  label="Company Logo"
+                  description="Transparent PNG recommended"
                   icon={Building2}
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/*"
                   preview={data.logoUrl}
-                  onChange={(event) =>
-                    handleImageUpload('logoUrl', event)
-                  }
+                  onChange={updateFile('logoUrl')}
                 />
 
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-1">
                   <Field
-                    label="Full name"
+                    label="Full Name"
                     value={data.fullName}
                     onChange={(value) =>
-                      update('fullName', value)
+                      updateField('fullName', value)
                     }
                     placeholder="Your full name"
                     icon={UserRound}
                   />
 
                   <Field
-                    label="Job title"
+                    label="Job Title"
                     value={data.jobTitle}
                     onChange={(value) =>
-                      update('jobTitle', value)
+                      updateField('jobTitle', value)
                     }
-                    placeholder="Your professional title"
-                    icon={BriefcaseIcon}
+                    placeholder="Creative Director"
+                    icon={Sparkles}
                   />
 
                   <Field
                     label="Company"
                     value={data.companyName}
                     onChange={(value) =>
-                      update('companyName', value)
+                      updateField('companyName', value)
                     }
-                    placeholder="Company or brand name"
+                    placeholder="Company name"
                     icon={Building2}
                   />
 
@@ -1860,9 +2004,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="Phone"
                     value={data.phone}
                     onChange={(value) =>
-                      update('phone', value)
+                      updateField('phone', value)
                     }
-                    placeholder="+971 ..."
+                    placeholder="+971 50 000 0000"
                     icon={Phone}
                   />
 
@@ -1870,9 +2014,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="WhatsApp"
                     value={data.whatsapp}
                     onChange={(value) =>
-                      update('whatsapp', value)
+                      updateField('whatsapp', value)
                     }
-                    placeholder="+971 ..."
+                    placeholder="+971 50 000 0000"
                     icon={MessageCircle}
                   />
 
@@ -1880,9 +2024,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="Email"
                     value={data.email}
                     onChange={(value) =>
-                      update('email', value)
+                      updateField('email', value)
                     }
-                    placeholder="name@example.com"
+                    placeholder="hello@example.com"
                     icon={Mail}
                   />
 
@@ -1890,7 +2034,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="Website"
                     value={data.website}
                     onChange={(value) =>
-                      update('website', value)
+                      updateField('website', value)
                     }
                     placeholder="https://example.com"
                     icon={Globe}
@@ -1900,9 +2044,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="Address"
                     value={data.address}
                     onChange={(value) =>
-                      update('address', value)
+                      updateField('address', value)
                     }
-                    placeholder="City, country"
+                    placeholder="Dubai, UAE"
                     icon={MapPin}
                   />
 
@@ -1910,9 +2054,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="LinkedIn"
                     value={data.linkedin}
                     onChange={(value) =>
-                      update('linkedin', value)
+                      updateField('linkedin', value)
                     }
-                    placeholder="linkedin.com/in/..."
+                    placeholder="linkedin.com/in/username"
                     icon={Linkedin}
                   />
 
@@ -1920,183 +2064,146 @@ export const VisitingCardEditorPage: React.FC = () => {
                     label="Instagram"
                     value={data.instagram}
                     onChange={(value) =>
-                      update('instagram', value)
+                      updateField('instagram', value)
                     }
                     placeholder="@username"
                     icon={Instagram}
                   />
 
-                  {mode === 'two-side' && (
-                    <Field
-                      label="Short bio"
-                      value={data.bio}
-                      onChange={(value) =>
-                        update('bio', value)
-                      }
-                      placeholder="A short professional introduction"
-                      icon={Sparkles}
-                      multiline
-                    />
-                  )}
+                  <Field
+                    label="Short Bio"
+                    value={data.bio}
+                    onChange={(value) =>
+                      updateField('bio', value)
+                    }
+                    placeholder="Short professional introduction"
+                    icon={Sparkles}
+                    multiline
+                  />
                 </div>
-
-                <button
-                  type="button"
-                  onClick={buildCard}
-                  disabled={busy}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ background: template.accent }}
-                >
-                  <Check className="h-4 w-4" />
-                  {built ? 'Card Updated' : 'Build Card'}
-                </button>
               </div>
             </section>
 
-            <section className="min-w-0 rounded-[28px] border border-white/10 bg-white/[0.025] p-4 shadow-2xl backdrop-blur-xl sm:p-6">
-              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-lg font-black text-white">
-                    Live preview
-                  </h2>
+            <section className="min-w-0">
+              <div className="sticky top-6">
+                <div className="rounded-[28px] border border-white/10 bg-slate-950/70 p-5 shadow-2xl backdrop-blur-xl">
+                  <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-lg font-black text-white">
+                        Live Preview
+                      </h2>
+                      <p className="mt-1 text-xs text-slate-500">
+                        Final export: 1050 × 600 px
+                      </p>
+                    </div>
 
-                  <p className="mt-1 text-xs text-slate-500">
-                    Standard print size: 3.5 × 2 inches · 300 DPI JPG
-                  </p>
-                </div>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={downloadJpg}
+                        disabled={isExporting}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl bg-cyan-400 px-4 py-2.5 text-xs font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {exportType === 'jpg' ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                        JPG
+                      </button>
 
-                {mode === 'two-side' && (
-                  <div className="flex rounded-xl border border-white/10 bg-black/10 p-1">
-                    <button
-                      type="button"
-                      onClick={() => setSide('front')}
-                      className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
-                        side === 'front'
-                          ? 'bg-white/10 text-white'
-                          : 'text-slate-500 hover:text-slate-300'
-                      }`}
-                    >
-                      Front
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setSide('back')}
-                      className={`rounded-lg px-4 py-2 text-xs font-bold transition ${
-                        side === 'back'
-                          ? 'bg-white/10 text-white'
-                          : 'text-slate-500 hover:text-slate-300'
-                      }`}
-                    >
-                      Back
-                    </button>
+                      <button
+                        type="button"
+                        onClick={downloadPdf}
+                        disabled={isExporting}
+                        className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/[0.06] px-4 py-2.5 text-xs font-black text-white transition hover:bg-white/[0.1] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {exportType === 'pdf' ? (
+                          <RefreshCw className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Download className="h-4 w-4" />
+                        )}
+                        PDF
+                      </button>
+                    </div>
                   </div>
-                )}
-              </div>
 
-              <div className="flex min-h-[360px] items-center justify-center overflow-hidden rounded-[24px] border border-white/5 bg-black/10 p-3 sm:p-6">
-                <div className="w-full max-w-[900px]">
-                  {currentCard}
-                </div>
-              </div>
+                  <div className="overflow-auto rounded-[24px] border border-white/10 bg-black/30 p-3 sm:p-5">
+                    <div className="mx-auto w-full max-w-[1050px]">
+                      <div
+                        className="relative w-full overflow-hidden"
+                        style={{
+                          aspectRatio: '1050 / 600',
+                        }}
+                      >
+                        <div className="absolute inset-0 origin-top-left">
+                          <div
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                            }}
+                          >
+                            <OneSideCard
+                              template={template}
+                              data={data}
+                              qrSrc={qrSrc}
+                              cardRef={cardRef}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={downloadJpg}
-                  disabled={busy}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.055] px-5 py-3.5 text-sm font-black text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Download className="h-4 w-4" />
-                  {busy
-                    ? 'Preparing...'
-                    : 'Download JPG'}
-                </button>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                      <Check className="h-4 w-4 text-emerald-400" />
+                      <p className="mt-2 text-xs font-bold text-white">
+                        Print-ready JPG
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        1050 × 600 px
+                      </p>
+                    </div>
 
-                <button
-                  type="button"
-                  onClick={downloadPdf}
-                  disabled={busy}
-                  className="inline-flex items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-sm font-black text-slate-950 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
-                  style={{ background: template.accent }}
-                >
-                  <Download className="h-4 w-4" />
-                  {busy
-                    ? 'Preparing...'
-                    : 'Download PDF'}
-                </button>
-              </div>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                      <Check className="h-4 w-4 text-emerald-400" />
+                      <p className="mt-2 text-xs font-bold text-white">
+                        Exact PDF
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        3.5 × 2 inches
+                      </p>
+                    </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-                    JPG
-                  </p>
-
-                  <p className="mt-1 text-xs font-semibold text-slate-300">
-                    1050 × 600 px
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-                    PDF
-                  </p>
-
-                  <p className="mt-1 text-xs font-semibold text-slate-300">
-                    3.5 × 2 inch
-                  </p>
-                </div>
-
-                <div className="rounded-2xl border border-white/8 bg-white/[0.025] p-3">
-                  <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-500">
-                    Format
-                  </p>
-
-                  <p className="mt-1 text-xs font-semibold text-slate-300">
-                    {mode === 'two-side'
-                      ? 'Front + Back'
-                      : 'Single Side'}
-                  </p>
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
+                      <Check className="h-4 w-4 text-emerald-400" />
+                      <p className="mt-2 text-xs font-bold text-white">
+                        QR Included
+                      </p>
+                      <p className="mt-1 text-[11px] text-slate-500">
+                        Contact information
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </section>
           </div>
         </div>
+
+        <div
+          ref={exportHostRef}
+          aria-hidden="true"
+          style={{
+            display: 'none',
+            width: `${CARD_WIDTH_PX}px`,
+            height: `${CARD_HEIGHT_PX}px`,
+          }}
+        />
       </main>
     </PageTransition>
   );
 };
-
-const BriefcaseIcon = ({
-  className,
-  style,
-}: {
-  className?: string;
-  style?: React.CSSProperties;
-}) => (
-  <svg
-    className={className}
-    style={style}
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    strokeLinecap="round"
-    strokeLinejoin="round"
-    aria-hidden="true"
-  >
-    <rect
-      x="3"
-      y="7"
-      width="18"
-      height="13"
-      rx="2"
-    />
-    <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    <path d="M3 12h18" />
-    <path d="M10 12v2h4v-2" />
-  </svg>
-);
 
 export default VisitingCardEditorPage;
