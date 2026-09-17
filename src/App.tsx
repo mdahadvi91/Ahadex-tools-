@@ -9,6 +9,7 @@ import { CategoryPage } from './pages/CategoryPage';
 import { ToolViewPage } from './pages/ToolViewPage';
 import { VisitingCardLandingPage } from './pages/VisitingCardLandingPage';
 import { VisitingCardTemplateGalleryPage } from './pages/VisitingCardTemplateGalleryPage';
+import { VisitingCardTemplatePreviewPage } from './pages/VisitingCardTemplatePreviewPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { PrivacyPage, TermsPage, DisclaimerPage } from './pages/LegalPages';
@@ -50,6 +51,16 @@ export default function App() {
                 <Route
                   path="/tools/visiting-card-generator/two-side"
                   element={<VisitingCardTemplateGalleryPage />}
+                />
+
+                <Route
+                  path="/tools/visiting-card-generator/one-side/template/:templateId"
+                  element={<VisitingCardTemplatePreviewPage />}
+                />
+
+                <Route
+                  path="/tools/visiting-card-generator/two-side/template/:templateId"
+                  element={<VisitingCardTemplatePreviewPage />}
                 />
 
                 {/* Existing tool fallback */}
