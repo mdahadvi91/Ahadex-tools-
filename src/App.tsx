@@ -11,7 +11,6 @@ import { VisitingCardLandingPage } from './pages/VisitingCardLandingPage';
 import { VisitingCardTemplateGalleryPage } from './pages/VisitingCardTemplateGalleryPage';
 import { OneSideTemplateGalleryPage } from './pages/OneSideTemplateGalleryPage';
 import { VisitingCardTemplatePreviewPage } from './pages/VisitingCardTemplatePreviewPage';
-import { OneSideTemplatePreviewPage } from './pages/OneSideTemplatePreviewPage';
 import { VisitingCardEditorPage } from './pages/VisitingCardEditorPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
@@ -53,11 +52,6 @@ export default function App() {
                 />
 
                 <Route
-                  path="/tools/visiting-card-generator/one-side/template/:templateId"
-                  element={<OneSideTemplatePreviewPage />}
-                />
-
-                <Route
                   path="/tools/visiting-card-generator/one-side/editor/:templateId"
                   element={<VisitingCardEditorPage />}
                 />
@@ -84,12 +78,14 @@ export default function App() {
                   element={<ToolViewPage />}
                 />
 
+                {/* Informational and trust pages */}
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/contact" element={<ContactPage />} />
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/disclaimer" element={<DisclaimerPage />} />
 
+                {/* Global fallback */}
                 <Route
                   path="*"
                   element={<NotFoundPage onOpenSearch={openSearch} />}
