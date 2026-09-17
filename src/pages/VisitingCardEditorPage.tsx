@@ -1,4 +1,9 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { toJpeg } from 'html-to-image';
 import jsPDF from 'jspdf';
@@ -41,12 +46,23 @@ type TemplateLayout =
   | 'prism'
   | 'monogram'
   | 'brutalist'
-  | 'signature';
+  | 'signature'
+  | 'diagonal'
+  | 'halo'
+  | 'cutout'
+  | 'neo'
+  | 'orbit'
+  | 'gradient'
+  | 'duotone'
+  | 'vertical'
+  | 'badge'
+  | 'cinematic';
 
 type TemplateStyle = {
   name: string;
   category: string;
   accent: string;
+  accent2: string;
   accentSoft: string;
   background: string;
   foreground: string;
@@ -76,213 +92,313 @@ const CARD_HEIGHT_PX = 600;
 const CARD_WIDTH_IN = 3.5;
 const CARD_HEIGHT_IN = 2;
 
-const EMPTY_CARD_DATA: CardData = {
-  photoUrl: null,
+const DEMO_PHOTO =
+  'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iMTEwMCIgdmlld0JveD0iMCAwIDkwMCAxMTAwIj48ZGVmcz48bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj48c3RvcCBzdG9wLWNvbG9yPSIjMGYxNzJhIi8+PHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMzM0MTU1Ii8+PC9saW5lYXJHcmFkaWVudD48L2RlZnM+PHJlY3Qgd2lkdGg9IjkwMCIgaGVpZ2h0PSIxMTAwIiBmaWxsPSJ1cmwoI2cpIi8+PGNpcmNsZSBjeD0iNDUwIiBjeT0iMzgwIiByPSIxNzAiIGZpbGw9IiNjYmQ1ZTEiLz48cGF0aCBkPSJNMTgwIDEwNTBjMzAtMjYwIDE3MC0zNjAgMjcwLTM2MHMjI0MCAxMDAgMjcwIDM2MCIgZmlsbD0iIzk0YTNhOCI+PC9wYXRoPjxjaXJjbGUgY3g9IjM5MCIgY3k9IjM2MCIgcj0iMTgiIGZpbGw9IiMwZjE3MmEiLz48Y2lyY2xlIGN4PSI1MTAiIGN5PSIzNjAiIHI9IjE4IiBmaWxsPSIjMGYxNzJhIi8+PHBhdGggZD0iTTM3MCA0NzBxODAgNjAgMTYwIDAiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzBmMTcyYSIgc3Ryb2tlLXdpZHRoPSIxOCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIi8+PHRleHQgeD0iNDUwIiB5PSIxMDMwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iNDQiIGZpbGw9IiNmOGZhZmMiIGZvbnQtd2VpZ2h0PSI3MDAiPk1PSEFNTUFEIEFIQUQ8L3RleHQ+PC9zdmc+';
+
+const DEMO_CARD_DATA: CardData = {
+  photoUrl: DEMO_PHOTO,
   logoUrl: null,
-  fullName: '',
-  jobTitle: '',
-  companyName: '',
-  phone: '',
-  whatsapp: '',
-  email: '',
-  website: '',
-  address: '',
-  linkedin: '',
-  instagram: '',
-  bio: '',
+  fullName: 'Mohammad Ahad',
+  jobTitle: 'Creative Director',
+  companyName: 'AHADEX',
+  phone: '+971 50 000 0000',
+  whatsapp: '+971 50 000 0000',
+  email: 'hello@ahadex.fun',
+  website: 'ahadex.fun',
+  address: 'Sharjah · Dubai · UAE',
+  linkedin: 'linkedin.com/in/mohammadahad',
+  instagram: '@mohammadahad',
+  bio: 'Digital creator building modern tools, products and professional identities.',
 };
 
 const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
   '01': {
-    name: 'Executive Portrait',
+    name: 'Apex Executive',
     category: 'Executive',
     accent: '#38bdf8',
+    accent2: '#2563eb',
     accentSoft: '#082f49',
-    background: '#07111f',
+    background: '#06111f',
     foreground: '#f8fafc',
     muted: '#94a3b8',
     layout: 'portrait',
-    description: 'Confident executive identity with strong portrait focus.',
+    description: 'Executive portrait card with a powerful photo-led composition.',
   },
-
   '02': {
     name: 'Obsidian Gold',
     category: 'Luxury',
-    accent: '#d4af6a',
-    accentSoft: '#5b4316',
-    background: '#080706',
+    accent: '#e7c46a',
+    accent2: '#8b5e1a',
+    accentSoft: '#3d2a0c',
+    background: '#070605',
     foreground: '#fff8e7',
-    muted: '#a8a29e',
-    layout: 'monogram',
-    description: 'Deep black luxury composition with gold geometry and signature typography.',
+    muted: '#aaa39a',
+    layout: 'luxury',
+    description: 'Black-gold luxury identity with cinematic portrait treatment.',
   },
-
   '03': {
-    name: 'Editorial Rose',
-    category: 'Editorial',
-    accent: '#fb7185',
+    name: 'Maison Editorial',
+    category: 'Fashion',
+    accent: '#f43f5e',
+    accent2: '#be123c',
     accentSoft: '#4c0519',
-    background: '#fff9fa',
-    foreground: '#18181b',
-    muted: '#71717a',
+    background: '#fff8f8',
+    foreground: '#1f1115',
+    muted: '#765d65',
     layout: 'editorial',
-    description: 'Elegant editorial composition for personal brands and creatives.',
+    description: 'Fashion-editorial composition with oversized typography and portrait.',
   },
-
   '04': {
-    name: 'Swiss Minimal',
+    name: 'Swiss Precision',
     category: 'Minimal',
     accent: '#111827',
-    accentSoft: '#e5e7eb',
+    accent2: '#64748b',
+    accentSoft: '#e2e8f0',
     background: '#f8fafc',
     foreground: '#0f172a',
     muted: '#64748b',
     layout: 'minimal',
-    description: 'Clean typographic system with disciplined spacing.',
+    description: 'Ultra-clean Swiss grid with an integrated professional portrait.',
   },
-
   '05': {
-    name: 'Cyber Prism',
-    category: 'Technology',
-    accent: '#67e8f9',
-    accentSoft: '#164e63',
-    background: '#030712',
-    foreground: '#ecfeff',
-    muted: '#94a3b8',
-    layout: 'prism',
-    description: 'Futuristic layered glass, neon prism and technical grid treatment.',
+    name: 'Royal Eclipse',
+    category: 'Premium',
+    accent: '#c084fc',
+    accent2: '#7c3aed',
+    accentSoft: '#3b0764',
+    background: '#10051d',
+    foreground: '#faf5ff',
+    muted: '#c4b5fd',
+    layout: 'monogram',
+    description: 'Royal purple and black identity with monogram and portrait focus.',
   },
-
   '06': {
-    name: 'Architect Grid',
+    name: 'Architect X',
     category: 'Architecture',
     accent: '#60a5fa',
+    accent2: '#0ea5e9',
     accentSoft: '#172554',
-    background: '#081321',
+    background: '#06111f',
     foreground: '#eff6ff',
     muted: '#93c5fd',
     layout: 'grid',
-    description: 'Precision grid system inspired by architecture and engineering.',
+    description: 'Technical architectural grid with precision portrait framing.',
   },
-
   '07': {
-    name: 'Creative Offset',
+    name: 'Emerald Offset',
     category: 'Creative',
     accent: '#34d399',
+    accent2: '#10b981',
     accentSoft: '#064e3b',
-    background: '#061814',
+    background: '#041713',
     foreground: '#ecfdf5',
     muted: '#86efac',
     layout: 'asymmetric',
-    description: 'Asymmetric creative identity with energetic offset geometry.',
+    description: 'Creative asymmetric layout with a bold floating portrait.',
   },
-
   '08': {
-    name: 'Neo Editorial',
+    name: 'Graphite Glass',
     category: 'Modern',
-    accent: '#f5f5f5',
-    accentSoft: '#3f3f46',
-    background: '#111113',
+    accent: '#e2e8f0',
+    accent2: '#64748b',
+    accentSoft: '#27272a',
+    background: '#0d0f13',
     foreground: '#fafafa',
     muted: '#a1a1aa',
-    layout: 'brutalist',
-    description: 'High-contrast editorial typography with brutalist visual structure.',
+    layout: 'glass',
+    description: 'Dark glassmorphism identity with layered portrait panel.',
   },
-
   '09': {
     name: 'Cobalt Frame',
     category: 'Corporate',
     accent: '#2563eb',
+    accent2: '#06b6d4',
     accentSoft: '#dbeafe',
     background: '#f8fbff',
     foreground: '#0f172a',
     muted: '#64748b',
     layout: 'frame',
-    description: 'Professional corporate frame with a sharp blue identity.',
+    description: 'Corporate blue frame with strong portrait hierarchy.',
   },
-
   '10': {
     name: 'Rose Atelier',
     category: 'Personal Brand',
     accent: '#e11d48',
+    accent2: '#fb7185',
     accentSoft: '#ffe4e6',
     background: '#fff7f8',
     foreground: '#3f0b18',
     muted: '#881337',
-    layout: 'editorial',
-    description: 'Soft premium identity for consultants and personal brands.',
+    layout: 'diagonal',
+    description: 'Elegant personal-brand card with diagonal fashion geometry.',
   },
-
   '11': {
     name: 'Copper Heritage',
     category: 'Heritage',
     accent: '#ea580c',
+    accent2: '#f59e0b',
     accentSoft: '#431407',
-    background: '#1a100a',
+    background: '#170b06',
     foreground: '#fff7ed',
     muted: '#fdba74',
-    layout: 'frame',
-    description: 'Warm heritage aesthetic with copper accents and deep charcoal.',
+    layout: 'badge',
+    description: 'Warm copper heritage composition with emblem-like portrait badge.',
   },
-
   '12': {
     name: 'Aqua Digital',
     category: 'Technology',
     accent: '#2dd4bf',
+    accent2: '#06b6d4',
     accentSoft: '#134e4a',
-    background: '#031817',
+    background: '#021615',
     foreground: '#f0fdfa',
     muted: '#99f6e4',
-    layout: 'grid',
-    description: 'Digital-first identity with aqua glow and technical structure.',
+    layout: 'orbit',
+    description: 'Digital aqua identity with orbital geometry and portrait.',
   },
-
   '13': {
-    name: 'Royal Monogram',
+    name: 'Midnight Signature',
     category: 'Signature',
-    accent: '#f4d27a',
-    accentSoft: '#4a3511',
-    background: '#090909',
-    foreground: '#fff9e8',
-    muted: '#b5b0a4',
+    accent: '#f8fafc',
+    accent2: '#94a3b8',
+    accentSoft: '#334155',
+    background: '#020617',
+    foreground: '#f8fafc',
+    muted: '#94a3b8',
     layout: 'signature',
-    description: 'High-end monogram composition with elegant frame architecture.',
+    description: 'High-end signature layout with editorial portrait placement.',
   },
-
   '14': {
     name: 'Solar Statement',
     category: 'Bold',
     accent: '#facc15',
+    accent2: '#f97316',
     accentSoft: '#422006',
-    background: '#171208',
+    background: '#130d02',
     foreground: '#fefce8',
     muted: '#fde68a',
     layout: 'bold',
-    description: 'Bold yellow statement design with oversized typography.',
+    description: 'Oversized statement typography with high-energy portrait block.',
   },
-
   '15': {
     name: 'Ocean Studio',
     category: 'Studio',
     accent: '#06b6d4',
+    accent2: '#3b82f6',
     accentSoft: '#164e63',
-    background: '#061923',
+    background: '#031521',
     foreground: '#ecfeff',
     muted: '#67e8f9',
     layout: 'split',
-    description: 'Contemporary studio identity with deep ocean gradients.',
+    description: 'Deep ocean studio card with modern split portrait composition.',
   },
-
   '16': {
     name: 'Silver Classic',
     category: 'Classic',
     accent: '#64748b',
+    accent2: '#cbd5e1',
     accentSoft: '#e2e8f0',
     background: '#f8fafc',
     foreground: '#0f172a',
     muted: '#64748b',
-    layout: 'frame',
-    description: 'Timeless professional layout with restrained silver accents.',
+    layout: 'vertical',
+    description: 'Classic professional identity with vertical photo architecture.',
+  },
+  '17': {
+    name: 'Prism Velocity',
+    category: 'Futuristic',
+    accent: '#67e8f9',
+    accent2: '#a78bfa',
+    accentSoft: '#164e63',
+    background: '#020617',
+    foreground: '#ecfeff',
+    muted: '#94a3b8',
+    layout: 'prism',
+    description: 'Futuristic prism layers, neon lighting and technical portrait treatment.',
+  },
+  '18': {
+    name: 'Neo Brutalist',
+    category: 'Brutalist',
+    accent: '#f5f5f5',
+    accent2: '#ef4444',
+    accentSoft: '#27272a',
+    background: '#111111',
+    foreground: '#fafafa',
+    muted: '#a1a1aa',
+    layout: 'brutalist',
+    description: 'Aggressive editorial typography with hard edges and portrait cutout.',
+  },
+  '19': {
+    name: 'Halo Noir',
+    category: 'Cinematic',
+    accent: '#f59e0b',
+    accent2: '#ef4444',
+    accentSoft: '#451a03',
+    background: '#090909',
+    foreground: '#fff7ed',
+    muted: '#a8a29e',
+    layout: 'halo',
+    description: 'Cinematic black identity with glowing halo around the portrait.',
+  },
+  '20': {
+    name: 'Gradient Flux',
+    category: 'Gradient',
+    accent: '#8b5cf6',
+    accent2: '#ec4899',
+    accentSoft: '#4c1d95',
+    background: '#10051d',
+    foreground: '#faf5ff',
+    muted: '#d8b4fe',
+    layout: 'gradient',
+    description: 'Premium gradient composition designed for modern creators.',
+  },
+  '21': {
+    name: 'Duotone Studio',
+    category: 'Creative',
+    accent: '#f43f5e',
+    accent2: '#14b8a6',
+    accentSoft: '#3f172a',
+    background: '#0f172a',
+    foreground: '#f8fafc',
+    muted: '#94a3b8',
+    layout: 'duotone',
+    description: 'Experimental duotone portrait treatment with bold color blocking.',
+  },
+  '22': {
+    name: 'Cutout Atelier',
+    category: 'Art Direction',
+    accent: '#22c55e',
+    accent2: '#84cc16',
+    accentSoft: '#14532d',
+    background: '#07130a',
+    foreground: '#f0fdf4',
+    muted: '#86efac',
+    layout: 'cutout',
+    description: 'Art-directed cutout portrait with layered shapes and strong identity.',
+  },
+  '23': {
+    name: 'Orbit Prime',
+    category: 'Future',
+    accent: '#38bdf8',
+    accent2: '#f472b6',
+    accentSoft: '#172554',
+    background: '#030712',
+    foreground: '#f0f9ff',
+    muted: '#93c5fd',
+    layout: 'neo',
+    description: 'High-tech orbital identity with asymmetric portrait composition.',
+  },
+  '24': {
+    name: 'Black Label',
+    category: 'Elite',
+    accent: '#d4d4d8',
+    accent2: '#71717a',
+    accentSoft: '#27272a',
+    background: '#050505',
+    foreground: '#fafafa',
+    muted: '#a1a1aa',
+    layout: 'cinematic',
+    description: 'Premium black-label cinematic card with large portrait and signature data.',
   },
 };
 
@@ -297,11 +413,9 @@ const getInitials = (name: string) =>
     .map((part) => part[0])
     .join('')
     .slice(0, 2)
-    .toUpperCase() || 'AH';
+    .toUpperCase() || 'MA';
 
-const readFileAsDataUrl = (
-  file: File,
-): Promise<string> =>
+const readFileAsDataUrl = (file: File): Promise<string> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -309,12 +423,12 @@ const readFileAsDataUrl = (
       if (typeof reader.result === 'string') {
         resolve(reader.result);
       } else {
-        reject(new Error('Unable to read file.'));
+        reject(new Error('Unable to read image.'));
       }
     };
 
     reader.onerror = () =>
-      reject(reader.error || new Error('Unable to read file.'));
+      reject(reader.error || new Error('Unable to read image.'));
 
     reader.readAsDataURL(file);
   });
@@ -345,7 +459,7 @@ const waitForFonts = async () => {
     try {
       await document.fonts.ready;
     } catch {
-      // Font loading failure should never block export.
+      // Export must continue even if a webfont fails.
     }
   }
 };
@@ -447,34 +561,27 @@ const ProfileVisual = ({
   photoUrl,
   accent,
   large = false,
+  className = '',
 }: {
   photoUrl: string | null;
   accent: string;
   large?: boolean;
+  className?: string;
 }) => (
   <div
     className={`relative shrink-0 overflow-hidden rounded-full border-2 ${
-      large ? 'h-28 w-28' : 'h-16 w-16'
-    }`}
+      large ? 'h-32 w-32' : 'h-20 w-20'
+    } ${className}`}
     style={{
       borderColor: `${accent}99`,
-      boxShadow: `0 0 0 6px ${accent}16, 0 0 35px ${accent}18`,
+      boxShadow: `0 0 0 7px ${accent}12, 0 0 45px ${accent}20`,
     }}
   >
-    {photoUrl ? (
-      <img
-        src={photoUrl}
-        alt=""
-        className="h-full w-full object-cover"
-      />
-    ) : (
-      <div className="flex h-full w-full items-center justify-center bg-white/10">
-        <UserRound
-          className={large ? 'h-12 w-12' : 'h-7 w-7'}
-          style={{ color: accent }}
-        />
-      </div>
-    )}
+    <img
+      src={photoUrl || DEMO_PHOTO}
+      alt="Professional portrait"
+      className="h-full w-full object-cover"
+    />
   </div>
 );
 
@@ -533,11 +640,7 @@ const ContactItem = ({
   );
 };
 
-const QrVisual = ({
-  src,
-}: {
-  src: string;
-}) => {
+const QrVisual = ({ src }: { src: string }) => {
   if (!src) {
     return (
       <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-white">
@@ -578,7 +681,64 @@ const CardFrame = ({
   </div>
 );
 
-const OneSideCard = ({
+const PhotoPanel = ({
+  photoUrl,
+  template,
+  className = '',
+}: {
+  photoUrl: string | null;
+  template: TemplateStyle;
+  className?: string;
+}) => (
+  <div
+    className={`absolute overflow-hidden ${className}`}
+    style={{
+      borderColor: `${template.accent}66`,
+      boxShadow: `0 0 60px ${template.accent}18`,
+    }}
+  >
+    <img
+      src={photoUrl || DEMO_PHOTO}
+      alt="Professional portrait"
+      className="h-full w-full object-cover"
+    />
+  </div>
+);
+
+const NameBlock = ({
+  data,
+  template,
+  dark = false,
+}: {
+  data: CardData;
+  template: TemplateStyle;
+  dark?: boolean;
+}) => (
+  <div>
+    <p
+      className="text-[13px] font-black uppercase tracking-[0.32em]"
+      style={{ color: template.accent }}
+    >
+      {data.companyName || 'AHADEX'}
+    </p>
+
+    <h1
+      className="mt-3 text-[58px] font-black leading-[0.9] tracking-[-0.06em]"
+      style={{ color: dark ? '#ffffff' : template.foreground }}
+    >
+      {data.fullName || 'Mohammad Ahad'}
+    </h1>
+
+    <p
+      className="mt-4 text-[17px] font-semibold uppercase tracking-[0.18em]"
+      style={{ color: template.muted }}
+    >
+      {data.jobTitle || 'Creative Director'}
+    </p>
+  </div>
+);
+
+const CardContent = ({
   template,
   data,
   qrSrc,
@@ -589,962 +749,1112 @@ const OneSideCard = ({
   qrSrc: string;
   cardRef: React.RefObject<HTMLDivElement | null>;
 }) => {
-  const initials = getInitials(data.fullName);
+  const photo = data.photoUrl || DEMO_PHOTO;
 
-  if (template.layout === 'monogram') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-5 border"
-          style={{ borderColor: `${template.accent}55` }}
-        />
-
-        <div
-          className="absolute left-10 top-10 h-36 w-36 rounded-full border"
-          style={{
-            borderColor: `${template.accent}45`,
-            boxShadow: `0 0 80px ${template.accent}18`,
-          }}
-        />
-
-        <div
-          className="absolute -right-32 -bottom-44 h-[520px] w-[520px] rounded-full border-[2px]"
-          style={{
-            borderColor: `${template.accent}25`,
-          }}
-        />
-
-        <div className="absolute left-12 top-12">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
+  switch (template.layout) {
+    case 'portrait':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <PhotoPanel
+            photoUrl={photo}
             template={template}
+            className="inset-y-0 left-0 w-[39%] border-r-2"
           />
-        </div>
 
-        <div className="absolute left-14 top-40 max-w-[590px]">
-          <p
-            className="mb-3 text-[15px] font-semibold uppercase tracking-[0.32em]"
-            style={{ color: template.accent }}
-          >
-            {data.companyName || 'PRIVATE IDENTITY'}
-          </p>
+          <div
+            className="absolute inset-y-0 left-[30%] w-[30%]"
+            style={{
+              background: `linear-gradient(90deg, transparent, ${template.background})`,
+            }}
+          />
 
-          <h1 className="text-[62px] font-black leading-[0.92] tracking-[-0.055em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-5 text-[19px] font-medium uppercase tracking-[0.18em]"
-            style={{ color: template.muted }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute bottom-12 left-14 right-14 flex items-end justify-between">
-          <div className="space-y-2 text-[15px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
+          <div className="absolute left-[43%] right-14 top-12">
+            <LogoVisual
+              logoUrl={data.logoUrl}
+              companyName={data.companyName}
               template={template}
             />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
+            <div className="mt-10">
+              <NameBlock data={data} template={template} />
+            </div>
+          </div>
+
+          <div className="absolute bottom-12 left-[43%] right-14 grid grid-cols-2 gap-3 text-[12px]">
+            <ContactItem icon={Phone} value={data.phone} template={template} />
+            <ContactItem icon={Mail} value={data.email} template={template} />
+            <ContactItem icon={Globe} value={data.website} template={template} />
+            <ContactItem icon={MapPin} value={data.address} template={template} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'luxury':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-7 border"
+            style={{ borderColor: `${template.accent}55` }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-12 top-12 h-[330px] w-[250px] rounded-[24px] border-2"
+          />
+
+          <div
+            className="absolute left-12 top-12 h-36 w-36 rounded-full border"
+            style={{
+              borderColor: `${template.accent}45`,
+              boxShadow: `0 0 80px ${template.accent}20`,
+            }}
+          />
+
+          <div className="absolute left-14 bottom-14 max-w-[620px]">
+            <p
+              className="text-[12px] font-bold uppercase tracking-[0.4em]"
+              style={{ color: template.accent }}
+            >
+              {data.companyName || 'AHADEX'}
+            </p>
+
+            <h1 className="mt-4 font-serif text-[58px] tracking-[-0.03em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-3 text-[15px] uppercase tracking-[0.25em]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+
+            <div className="mt-6 flex gap-7 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+            </div>
+          </div>
+
+          <div className="absolute bottom-12 right-12">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'editorial':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-full w-[34%]"
+            style={{ background: template.accentSoft }}
+          />
+
+          <div
+            className="absolute left-[34%] top-0 h-full w-[2px]"
+            style={{ background: template.accent }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-14 top-14 h-32 w-32 rounded-full border-2"
+          />
+
+          <div className="absolute left-14 top-14">
+            <p
+              className="text-xs font-black uppercase tracking-[0.3em]"
+              style={{ color: template.accent }}
+            >
+              {data.companyName || 'AHADEX'}
+            </p>
+
+            <h1 className="mt-10 max-w-[600px] text-[62px] font-black leading-[0.84] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-5 text-[16px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-12 left-14 right-14 flex items-end justify-between">
+            <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+              <ContactItem icon={Globe} value={data.website} template={template} />
+              <ContactItem icon={Instagram} value={data.instagram} template={template} />
+            </div>
+
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'minimal':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-14 top-14 h-36 w-36 rounded-2xl border"
+          />
+
+          <div className="absolute left-14 top-14">
+            <p className="text-xs font-bold uppercase tracking-[0.35em] text-slate-400">
+              {data.companyName || 'AHADEX'}
+            </p>
+
+            <h1 className="mt-12 text-[56px] font-black leading-none tracking-[-0.065em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-3 text-[16px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div
+            className="absolute bottom-16 left-14 right-14 h-px"
+            style={{ background: template.accentSoft }}
+          />
+
+          <div className="absolute bottom-6 left-14 right-14 flex justify-between text-[12px]">
+            <ContactItem icon={Phone} value={data.phone} template={template} />
+            <ContactItem icon={Mail} value={data.email} template={template} />
+            <ContactItem icon={Globe} value={data.website} template={template} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'grid':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              backgroundImage: `
+                linear-gradient(${template.accent}14 1px, transparent 1px),
+                linear-gradient(90deg, ${template.accent}14 1px, transparent 1px)
+              `,
+              backgroundSize: '42px 42px',
+            }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-12 top-12 h-[250px] w-[210px] rounded-2xl border-2"
+          />
+
+          <div className="absolute left-12 top-12">
+            <LogoVisual
+              logoUrl={data.logoUrl}
+              companyName={data.companyName}
               template={template}
             />
           </div>
 
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'prism') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-0 opacity-70"
-          style={{
-            backgroundImage: `
-              linear-gradient(${template.accent}12 1px, transparent 1px),
-              linear-gradient(90deg, ${template.accent}12 1px, transparent 1px)
-            `,
-            backgroundSize: '48px 48px',
-          }}
-        />
-
-        <div
-          className="absolute -left-32 -top-32 h-[560px] w-[560px] rounded-full blur-3xl"
-          style={{
-            background: `radial-gradient(circle, ${template.accent}45, transparent 65%)`,
-          }}
-        />
-
-        <div
-          className="absolute right-[-180px] top-[-220px] h-[600px] w-[600px] rotate-45 border-[90px]"
-          style={{
-            borderColor: `${template.accent}14`,
-          }}
-        />
-
-        <div className="absolute left-12 top-12 flex items-center gap-4">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
-            template={template}
-          />
-
-          <div>
+          <div className="absolute left-12 bottom-14">
             <p
               className="text-xs font-bold uppercase tracking-[0.28em]"
               style={{ color: template.accent }}
             >
-              {data.companyName || 'AHADEX STUDIO'}
+              {data.jobTitle || 'PROFESSIONAL'}
             </p>
 
-            <p
-              className="mt-1 text-xs"
-              style={{ color: template.muted }}
-            >
-              DIGITAL IDENTITY
-            </p>
+            <h1 className="mt-3 text-[52px] font-black tracking-[-0.06em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
           </div>
-        </div>
 
-        <div className="absolute bottom-14 left-14">
-          <p
-            className="mb-3 text-sm font-bold uppercase tracking-[0.35em]"
-            style={{ color: template.accent }}
-          >
-            {data.jobTitle || 'CREATIVE PROFESSIONAL'}
-          </p>
+          <div className="absolute right-12 bottom-12">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
 
-          <h1 className="text-[64px] font-black leading-[0.9] tracking-[-0.06em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
+    case 'asymmetric':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
           <div
-            className="mt-6 h-px w-64"
-            style={{ background: template.accent }}
+            className="absolute right-0 top-0 h-full w-[35%]"
+            style={{ background: template.accentSoft }}
           />
 
-          <p
-            className="mt-4 max-w-[520px] text-[14px] leading-6"
-            style={{ color: template.muted }}
-          >
-            {data.bio ||
-              'Create a powerful professional identity with a modern digital-first business card.'}
-          </p>
-        </div>
+          <div
+            className="absolute -right-24 -top-24 h-[430px] w-[430px] rounded-full border-[70px]"
+            style={{ borderColor: `${template.accent}20` }}
+          />
 
-        <div className="absolute bottom-14 right-14">
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-14 top-14 h-36 w-36 rounded-full border-2"
+          />
 
-  if (template.layout === 'brutalist') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute left-0 top-0 h-full w-[24px]"
-          style={{ background: template.accent }}
-        />
-
-        <div
-          className="absolute right-0 top-0 h-full w-[10px]"
-          style={{ background: template.accent }}
-        />
-
-        <div className="absolute left-16 top-12">
-          <p className="text-[12px] font-bold uppercase tracking-[0.45em] text-zinc-500">
-            BUSINESS IDENTITY / 01
-          </p>
-
-          <h1 className="mt-9 max-w-[680px] text-[70px] font-black uppercase leading-[0.82] tracking-[-0.075em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-6 inline-block px-4 py-2 text-sm font-black uppercase tracking-[0.22em]"
-            style={{
-              background: template.accent,
-              color: '#09090b',
-            }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute bottom-12 left-16 right-16 flex items-end justify-between">
-          <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-[13px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-            <ContactItem
-              icon={MapPin}
-              value={data.address}
-              template={template}
-            />
+          <div className="absolute left-14 top-56">
+            <NameBlock data={data} template={template} />
           </div>
 
-          <div className="flex items-center gap-4">
+          <div className="absolute bottom-14 left-14">
+            <div className="flex gap-6 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+            </div>
+          </div>
+
+          <div className="absolute bottom-12 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'glass':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                `radial-gradient(circle at 15% 20%, ${template.accent}22, transparent 30%), radial-gradient(circle at 85% 80%, ${template.accent2}20, transparent 35%)`,
+            }}
+          />
+
+          <div className="absolute inset-10 rounded-[30px] border border-white/10 bg-white/[0.045] p-10">
+            <div className="flex items-start justify-between">
+              <LogoVisual
+                logoUrl={data.logoUrl}
+                companyName={data.companyName}
+                template={template}
+              />
+
+              <PhotoPanel
+                photoUrl={photo}
+                template={template}
+                className="relative h-28 w-28 rounded-3xl border-2"
+              />
+            </div>
+
+            <div className="mt-12">
+              <h1 className="text-[50px] font-black tracking-[-0.06em]">
+                {data.fullName || 'Mohammad Ahad'}
+              </h1>
+
+              <p
+                className="mt-2 text-[16px]"
+                style={{ color: template.muted }}
+              >
+                {data.jobTitle || 'Creative Director'}
+              </p>
+            </div>
+
+            <div className="absolute bottom-8 left-10 right-10 flex justify-between text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+              <ContactItem icon={Globe} value={data.website} template={template} />
+            </div>
+          </div>
+        </CardFrame>
+      );
+
+    case 'frame':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-8 border-2"
+            style={{ borderColor: `${template.accent}45` }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-14 top-14 h-36 w-36 rounded-full border-2"
+          />
+
+          <div className="absolute left-14 top-14">
             <LogoVisual
               logoUrl={data.logoUrl}
               companyName={data.companyName}
               template={template}
             />
-            {qrSrc ? <QrVisual src={qrSrc} /> : null}
           </div>
-        </div>
-      </CardFrame>
-    );
-  }
 
-  if (template.layout === 'signature') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-7 rounded-[2px] border"
-          style={{ borderColor: `${template.accent}55` }}
-        />
+          <div className="absolute left-14 top-48">
+            <h1 className="text-[55px] font-black tracking-[-0.06em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
 
-        <div
-          className="absolute left-12 top-12 text-[90px] font-black leading-none"
-          style={{
-            color: `${template.accent}20`,
-          }}
-        >
-          {initials}
-        </div>
-
-        <div className="absolute right-14 top-14">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
-            template={template}
-          />
-        </div>
-
-        <div className="absolute left-14 bottom-14">
-          <p
-            className="text-xs font-bold uppercase tracking-[0.38em]"
-            style={{ color: template.accent }}
-          >
-            {data.companyName || 'SIGNATURE STUDIO'}
-          </p>
-
-          <h1 className="mt-3 text-[58px] font-black tracking-[-0.05em]">
-            {data.fullName || 'Your Name'}
-          </h1>
-
-          <p
-            className="mt-2 text-[17px] uppercase tracking-[0.2em]"
-            style={{ color: template.muted }}
-          >
-            {data.jobTitle || 'Your Position'}
-          </p>
-
-          <div className="mt-7 flex gap-7 text-[13px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-          </div>
-        </div>
-
-        <div className="absolute bottom-12 right-14">
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'portrait') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div className="absolute inset-y-0 left-0 w-[38%]">
-          {data.photoUrl ? (
-            <img
-              src={data.photoUrl}
-              alt=""
-              className="h-full w-full object-cover"
-            />
-          ) : (
-            <div
-              className="flex h-full w-full items-center justify-center"
-              style={{ background: template.accentSoft }}
+            <p
+              className="mt-3 text-[16px] uppercase tracking-[0.22em]"
+              style={{ color: template.accent }}
             >
-              <UserRound
-                className="h-28 w-28"
-                style={{ color: template.accent }}
-              />
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 left-14 right-14 flex items-center justify-between text-[12px]">
+            <div className="flex gap-7">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
             </div>
-          )}
+
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'bold':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-full w-[14px]"
+            style={{ background: template.accent }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-12 top-12 h-[300px] w-[220px] border-4 border-white/20"
+          />
+
+          <div className="absolute left-16 top-12">
+            <p
+              className="text-xs font-black uppercase tracking-[0.35em]"
+              style={{ color: template.accent }}
+            >
+              {data.companyName || 'STATEMENT'}
+            </p>
+
+            <h1 className="mt-12 max-w-[650px] text-[74px] font-black uppercase leading-[0.8] tracking-[-0.08em]">
+              {data.fullName || 'MOHAMMAD AHAD'}
+            </h1>
+
+            <p
+              className="mt-7 text-[18px] font-bold uppercase tracking-[0.22em]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'CREATIVE DIRECTOR'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 left-16 right-16 flex items-center justify-between">
+            <div className="flex gap-8 text-[13px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+            </div>
+
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'split':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-full w-[43%]"
+            style={{
+              background: `linear-gradient(135deg, ${template.accentSoft}, ${template.background})`,
+            }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-10 top-10 h-[360px] w-[260px] rounded-[30px] border-2"
+          />
+
+          <div className="absolute right-14 top-14 max-w-[470px]">
+            <LogoVisual
+              logoUrl={data.logoUrl}
+              companyName={data.companyName}
+              template={template}
+            />
+
+            <div className="mt-14">
+              <NameBlock data={data} template={template} />
+            </div>
+          </div>
+
+          <div className="absolute bottom-12 right-14">
+            <div className="flex gap-6 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+              <ContactItem icon={Globe} value={data.website} template={template} />
+            </div>
+          </div>
+        </CardFrame>
+      );
+
+    case 'prism':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: `
+                linear-gradient(${template.accent}10 1px, transparent 1px),
+                linear-gradient(90deg, ${template.accent}10 1px, transparent 1px)
+              `,
+              backgroundSize: '44px 44px',
+            }}
+          />
+
+          <div
+            className="absolute -left-24 -top-24 h-[560px] w-[560px] rounded-full blur-3xl"
+            style={{
+              background: `radial-gradient(circle, ${template.accent}50, transparent 65%)`,
+            }}
+          />
+
+          <div
+            className="absolute right-[-180px] top-[-240px] h-[620px] w-[620px] rotate-45 border-[90px]"
+            style={{ borderColor: `${template.accent2}18` }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-16 top-16 h-[310px] w-[230px] rotate-3 rounded-[30px] border-2"
+          />
+
+          <div className="absolute left-14 bottom-14">
+            <p
+              className="text-sm font-black uppercase tracking-[0.35em]"
+              style={{ color: template.accent }}
+            >
+              DIGITAL IDENTITY
+            </p>
+
+            <h1 className="mt-3 text-[64px] font-black leading-[0.9] tracking-[-0.06em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p className="mt-5 text-[15px]" style={{ color: template.muted }}>
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'monogram':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-5 border"
+            style={{ borderColor: `${template.accent}55` }}
+          />
+
+          <div
+            className="absolute left-10 top-10 text-[150px] font-black leading-none"
+            style={{ color: `${template.accent}14` }}
+          >
+            {getInitials(data.fullName)}
+          </div>
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-14 top-14 h-[300px] w-[240px] rounded-full border-2"
+          />
+
+          <div className="absolute left-14 bottom-14">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.38em]"
+              style={{ color: template.accent }}
+            >
+              {data.companyName || 'AHADEX'}
+            </p>
+
+            <h1 className="mt-3 text-[58px] font-black tracking-[-0.05em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-2 text-[16px] uppercase tracking-[0.2em]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-12 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'brutalist':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-full w-[24px]"
+            style={{ background: template.accent2 }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-14 top-12 h-[300px] w-[240px] border-4"
+          />
+
+          <div className="absolute left-16 top-12">
+            <p className="text-[12px] font-bold uppercase tracking-[0.45em] text-zinc-500">
+              BUSINESS IDENTITY / 01
+            </p>
+
+            <h1 className="mt-9 max-w-[650px] text-[70px] font-black uppercase leading-[0.82] tracking-[-0.075em]">
+              {data.fullName || 'MOHAMMAD AHAD'}
+            </h1>
+
+            <p
+              className="mt-6 inline-block px-4 py-2 text-sm font-black uppercase tracking-[0.22em]"
+              style={{
+                background: template.accent,
+                color: '#09090b',
+              }}
+            >
+              {data.jobTitle || 'CREATIVE DIRECTOR'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-12 left-16 right-16 flex items-end justify-between">
+            <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+              <ContactItem icon={Globe} value={data.website} template={template} />
+              <ContactItem icon={MapPin} value={data.address} template={template} />
+            </div>
+
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'signature':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-7 border"
+            style={{ borderColor: `${template.accent}55` }}
+          />
+
+          <div
+            className="absolute left-12 top-10 text-[92px] font-black leading-none"
+            style={{ color: `${template.accent}18` }}
+          >
+            {getInitials(data.fullName)}
+          </div>
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-14 top-14 h-[270px] w-[210px] rounded-[18px] border-2"
+          />
+
+          <div className="absolute left-14 bottom-14">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.38em]"
+              style={{ color: template.accent }}
+            >
+              {data.companyName || 'SIGNATURE STUDIO'}
+            </p>
+
+            <h1 className="mt-3 text-[58px] font-black tracking-[-0.05em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-2 text-[17px] uppercase tracking-[0.2em]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-12 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'diagonal':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute -left-28 -top-24 h-[760px] w-[430px] rotate-[18deg]"
+            style={{
+              background: `linear-gradient(180deg, ${template.accentSoft}, transparent)`,
+            }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-16 top-16 h-[360px] w-[240px] rotate-[-6deg] rounded-[28px] border-2"
+          />
+
+          <div className="absolute right-14 top-14 max-w-[600px]">
+            <p
+              className="text-xs font-black uppercase tracking-[0.35em]"
+              style={{ color: template.accent }}
+            >
+              PERSONAL BRAND
+            </p>
+
+            <h1 className="mt-8 text-[64px] font-black leading-[0.86] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-5 text-[17px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 right-14">
+            <div className="flex gap-6 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+            </div>
+          </div>
+        </CardFrame>
+      );
+
+    case 'halo':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-[-120px] top-[-140px] h-[620px] w-[620px] rounded-full blur-3xl"
+            style={{
+              background: `radial-gradient(circle, ${template.accent}35, transparent 62%)`,
+            }}
+          />
+
+          <div
+            className="absolute left-14 top-14 h-[350px] w-[350px] rounded-full border"
+            style={{
+              borderColor: `${template.accent}40`,
+              boxShadow: `0 0 100px ${template.accent}25`,
+            }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-20 top-20 h-[300px] w-[280px] rounded-full border-2"
+          />
+
+          <div className="absolute right-14 top-14 max-w-[520px]">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.4em]"
+              style={{ color: template.accent }}
+            >
+              BLACK LABEL
+            </p>
+
+            <h1 className="mt-7 text-[64px] font-black leading-[0.9] tracking-[-0.065em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-4 text-[16px] uppercase tracking-[0.2em]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'gradient':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `radial-gradient(circle at 80% 20%, ${template.accent}42, transparent 35%), radial-gradient(circle at 20% 85%, ${template.accent2}38, transparent 40%)`,
+            }}
+          />
 
           <div
             className="absolute inset-0"
             style={{
-              background: `linear-gradient(90deg, transparent 50%, ${template.background} 100%)`,
+              background: `linear-gradient(125deg, ${template.background}, transparent 55%, ${template.accentSoft})`,
             }}
           />
-        </div>
 
-        <div className="absolute left-[42%] right-12 top-12">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
+          <PhotoPanel
+            photoUrl={photo}
             template={template}
+            className="left-14 top-14 h-[330px] w-[245px] rounded-[34px] border-2"
           />
 
-          <p
-            className="mt-8 text-xs font-bold uppercase tracking-[0.3em]"
-            style={{ color: template.accent }}
-          >
-            {data.companyName || 'YOUR COMPANY'}
-          </p>
-
-          <h1 className="mt-2 text-[50px] font-black leading-none tracking-[-0.055em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-3 text-[17px]"
-            style={{ color: template.muted }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute bottom-12 left-[42%] right-12">
-          <div className="grid grid-cols-2 gap-x-5 gap-y-2 text-[12px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-            <ContactItem
-              icon={MapPin}
-              value={data.address}
-              template={template}
-            />
-          </div>
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'luxury') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-7 rounded-2xl border"
-          style={{ borderColor: `${template.accent}40` }}
-        />
-
-        <div
-          className="absolute left-0 top-0 h-full w-[5px]"
-          style={{ background: template.accent }}
-        />
-
-        <div className="absolute left-14 top-14">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
-            template={template}
-          />
-        </div>
-
-        <div className="absolute left-14 top-44">
-          <h1 className="text-[54px] font-black tracking-[-0.055em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-3 text-[16px] uppercase tracking-[0.25em]"
-            style={{ color: template.accent }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute bottom-14 left-14 flex gap-7 text-[13px]">
-          <ContactItem
-            icon={Phone}
-            value={data.phone}
-            template={template}
-          />
-          <ContactItem
-            icon={Mail}
-            value={data.email}
-            template={template}
-          />
-          <ContactItem
-            icon={Globe}
-            value={data.website}
-            template={template}
-          />
-        </div>
-
-        <div className="absolute right-14 bottom-14">
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'editorial') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute left-0 top-0 h-full w-[34%]"
-          style={{ background: template.accentSoft }}
-        />
-
-        <div
-          className="absolute left-[34%] top-0 h-full w-[2px]"
-          style={{ background: template.accent }}
-        />
-
-        <div className="absolute left-14 top-14">
-          <p
-            className="text-xs font-bold uppercase tracking-[0.3em]"
-            style={{ color: template.accent }}
-          >
-            {data.companyName || 'STUDIO'}
-          </p>
-
-          <h1 className="mt-10 max-w-[580px] text-[58px] font-black leading-[0.88] tracking-[-0.065em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-5 text-[16px]"
-            style={{ color: template.muted }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute right-14 top-14">
-          <ProfileVisual
-            photoUrl={data.photoUrl}
-            accent={template.accent}
-            large
-          />
-        </div>
-
-        <div className="absolute bottom-14 left-14 right-14 flex items-end justify-between">
-          <div className="grid grid-cols-2 gap-x-10 gap-y-3 text-[13px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
-            <ContactItem
-              icon={Instagram}
-              value={data.instagram}
-              template={template}
-            />
-          </div>
-
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'minimal') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div className="absolute left-14 top-14">
-          <p className="text-xs font-bold uppercase tracking-[0.35em] text-slate-400">
-            {data.companyName || 'COMPANY'}
-          </p>
-
-          <h1 className="mt-12 text-[56px] font-black leading-none tracking-[-0.065em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-3 text-[16px]"
-            style={{ color: template.muted }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute right-14 top-14">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
-            template={template}
-          />
-        </div>
-
-        <div
-          className="absolute bottom-14 left-14 right-14 h-px"
-          style={{ background: template.accentSoft }}
-        />
-
-        <div className="absolute bottom-6 left-14 right-14 flex justify-between text-[12px]">
-          <ContactItem
-            icon={Phone}
-            value={data.phone}
-            template={template}
-          />
-          <ContactItem
-            icon={Mail}
-            value={data.email}
-            template={template}
-          />
-          <ContactItem
-            icon={Globe}
-            value={data.website}
-            template={template}
-          />
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'grid') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-0 opacity-50"
-          style={{
-            backgroundImage: `
-              linear-gradient(${template.accent}14 1px, transparent 1px),
-              linear-gradient(90deg, ${template.accent}14 1px, transparent 1px)
-            `,
-            backgroundSize: '42px 42px',
-          }}
-        />
-
-        <div className="absolute left-12 top-12">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
-            template={template}
-          />
-        </div>
-
-        <div className="absolute left-12 bottom-14">
-          <p
-            className="text-xs font-bold uppercase tracking-[0.28em]"
-            style={{ color: template.accent }}
-          >
-            {data.jobTitle || 'PROFESSIONAL'}
-          </p>
-
-          <h1 className="mt-3 text-[52px] font-black tracking-[-0.06em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-        </div>
-
-        <div className="absolute right-12 top-14 w-[330px]">
-          <div
-            className="rounded-2xl border p-5 backdrop-blur-xl"
-            style={{
-              borderColor: `${template.accent}35`,
-              background: `${template.accent}0a`,
-            }}
-          >
-            <div className="space-y-4 text-[13px]">
-              <ContactItem
-                icon={Phone}
-                value={data.phone}
-                template={template}
-              />
-              <ContactItem
-                icon={MessageCircle}
-                value={data.whatsapp}
-                template={template}
-              />
-              <ContactItem
-                icon={Mail}
-                value={data.email}
-                template={template}
-              />
-              <ContactItem
-                icon={Globe}
-                value={data.website}
-                template={template}
-              />
-              <ContactItem
-                icon={MapPin}
-                value={data.address}
-                template={template}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="absolute bottom-12 right-12">
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'asymmetric') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute right-0 top-0 h-full w-[34%]"
-          style={{ background: template.accentSoft }}
-        />
-
-        <div
-          className="absolute -right-24 -top-24 h-96 w-96 rounded-full border-[80px]"
-          style={{ borderColor: `${template.accent}20` }}
-        />
-
-        <div className="absolute left-14 top-14">
-          <ProfileVisual
-            photoUrl={data.photoUrl}
-            accent={template.accent}
-            large
-          />
-        </div>
-
-        <div className="absolute left-14 top-52">
-          <h1 className="text-[58px] font-black leading-none tracking-[-0.065em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
-
-          <p
-            className="mt-4 text-[17px] font-semibold"
-            style={{ color: template.accent }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
-
-        <div className="absolute bottom-14 left-14">
-          <p
-            className="mb-3 text-xs font-bold uppercase tracking-[0.25em]"
-            style={{ color: template.muted }}
-          >
-            {data.companyName || 'YOUR COMPANY'}
-          </p>
-
-          <div className="flex gap-6 text-[13px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-          </div>
-        </div>
-
-        <div className="absolute right-14 bottom-14">
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
-
-  if (template.layout === 'glass') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(circle at 15% 20%, rgba(255,255,255,.12), transparent 30%), radial-gradient(circle at 85% 80%, rgba(148,163,184,.12), transparent 35%)',
-          }}
-        />
-
-        <div className="absolute inset-10 rounded-[28px] border border-white/10 bg-white/[0.035] p-10 backdrop-blur-2xl">
-          <div className="flex items-start justify-between">
+          <div className="absolute right-14 top-14 max-w-[600px]">
             <LogoVisual
               logoUrl={data.logoUrl}
               companyName={data.companyName}
               template={template}
             />
 
-            <ProfileVisual
-              photoUrl={data.photoUrl}
-              accent={template.accent}
-            />
-          </div>
-
-          <div className="mt-12">
-            <h1 className="text-[50px] font-black tracking-[-0.06em]">
-              {data.fullName || 'YOUR NAME'}
+            <h1 className="mt-16 text-[66px] font-black leading-[0.88] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
             </h1>
 
             <p
-              className="mt-2 text-[16px]"
+              className="mt-4 text-[17px]"
               style={{ color: template.muted }}
             >
-              {data.jobTitle || 'YOUR POSITION'}
+              {data.jobTitle || 'Creative Director'}
             </p>
           </div>
 
-          <div className="absolute bottom-8 left-10 right-10 flex justify-between text-[12px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
+          <div className="absolute bottom-12 left-14 right-14 flex justify-between text-[12px]">
+            <ContactItem icon={Phone} value={data.phone} template={template} />
+            <ContactItem icon={Mail} value={data.email} template={template} />
+            <ContactItem icon={Globe} value={data.website} template={template} />
+            <QrVisual src={qrSrc} />
           </div>
-        </div>
-      </CardFrame>
-    );
-  }
+        </CardFrame>
+      );
 
-  if (template.layout === 'frame') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute inset-8 border-2"
-          style={{ borderColor: `${template.accent}45` }}
-        />
+    case 'duotone':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-full w-[45%]"
+            style={{ background: template.accent }}
+          />
 
-        <div className="absolute left-14 top-14">
-          <LogoVisual
-            logoUrl={data.logoUrl}
-            companyName={data.companyName}
+          <PhotoPanel
+            photoUrl={photo}
             template={template}
+            className="left-14 top-14 h-[370px] w-[270px] rounded-[8px] border-4"
           />
-        </div>
 
-        <div className="absolute left-14 top-48">
-          <h1 className="text-[55px] font-black tracking-[-0.06em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
+          <div className="absolute right-14 top-14 max-w-[570px]">
+            <p
+              className="text-xs font-black uppercase tracking-[0.4em]"
+              style={{ color: template.accent }}
+            >
+              DUOTONE IDENTITY
+            </p>
 
-          <p
-            className="mt-3 text-[16px] uppercase tracking-[0.22em]"
-            style={{ color: template.accent }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
+            <h1 className="mt-10 text-[65px] font-black leading-[0.84] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
 
-        <div className="absolute right-14 top-14">
-          <ProfileVisual
-            photoUrl={data.photoUrl}
-            accent={template.accent}
-            large
-          />
-        </div>
-
-        <div className="absolute bottom-14 left-14 right-14 flex items-center justify-between text-[12px]">
-          <div className="flex gap-7">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
-            <ContactItem
-              icon={Globe}
-              value={data.website}
-              template={template}
-            />
+            <p
+              className="mt-5 text-[17px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
           </div>
 
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
-  }
+          <div className="absolute bottom-12 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
 
-  if (template.layout === 'bold') {
-    return (
-      <CardFrame template={template} cardRef={cardRef}>
-        <div
-          className="absolute left-0 top-0 h-full w-[12px]"
-          style={{ background: template.accent }}
-        />
+    case 'cutout':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute -left-20 -top-32 h-[500px] w-[500px] rounded-full"
+            style={{ background: template.accentSoft }}
+          />
 
-        <div className="absolute left-16 top-12">
-          <p
-            className="text-xs font-black uppercase tracking-[0.35em]"
-            style={{ color: template.accent }}
-          >
-            {data.companyName || 'STATEMENT'}
-          </p>
+          <div
+            className="absolute right-[-100px] bottom-[-180px] h-[500px] w-[500px] rounded-full border-[80px]"
+            style={{ borderColor: `${template.accent2}25` }}
+          />
 
-          <h1 className="mt-12 max-w-[760px] text-[76px] font-black uppercase leading-[0.8] tracking-[-0.08em]">
-            {data.fullName || 'YOUR NAME'}
-          </h1>
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-16 top-16 h-[350px] w-[250px] rounded-[45%_55%_40%_60%] border-4"
+          />
 
-          <p
-            className="mt-7 text-[18px] font-bold uppercase tracking-[0.22em]"
-            style={{ color: template.muted }}
-          >
-            {data.jobTitle || 'YOUR POSITION'}
-          </p>
-        </div>
+          <div className="absolute right-14 top-14 max-w-[580px]">
+            <p
+              className="text-xs font-black uppercase tracking-[0.35em]"
+              style={{ color: template.accent }}
+            >
+              ART DIRECTION
+            </p>
 
-        <div className="absolute bottom-14 left-16 right-16 flex items-center justify-between">
-          <div className="flex gap-8 text-[13px]">
-            <ContactItem
-              icon={Phone}
-              value={data.phone}
-              template={template}
-            />
-            <ContactItem
-              icon={Mail}
-              value={data.email}
-              template={template}
-            />
+            <h1 className="mt-8 text-[64px] font-black leading-[0.86] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-5 text-[17px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
           </div>
 
-          {qrSrc ? <QrVisual src={qrSrc} /> : null}
-        </div>
-      </CardFrame>
-    );
+          <div className="absolute bottom-14 right-14">
+            <div className="flex gap-6 text-[12px]">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+            </div>
+          </div>
+        </CardFrame>
+      );
+
+    case 'orbit':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-14 top-14 h-[330px] w-[330px] rounded-full border"
+            style={{ borderColor: `${template.accent}35` }}
+          />
+
+          <div
+            className="absolute left-[-35px] top-[170px] h-px w-[430px] rotate-[28deg]"
+            style={{ background: template.accent }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-20 top-20 h-[270px] w-[270px] rounded-full border-2"
+          />
+
+          <div className="absolute right-14 top-14 max-w-[550px]">
+            <p
+              className="text-xs font-black uppercase tracking-[0.4em]"
+              style={{ color: template.accent }}
+            >
+              FUTURE SYSTEMS
+            </p>
+
+            <h1 className="mt-8 text-[63px] font-black leading-[0.87] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-5 text-[17px]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'neo':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-[12px] w-full"
+            style={{ background: template.accent2 }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="right-12 top-12 h-[360px] w-[250px] border-4"
+          />
+
+          <div className="absolute left-16 top-14">
+            <p className="text-[12px] font-black uppercase tracking-[0.45em]">
+              SYSTEM / 023
+            </p>
+
+            <h1 className="mt-10 max-w-[620px] text-[76px] font-black uppercase leading-[0.76] tracking-[-0.085em]">
+              {data.fullName || 'MOHAMMAD AHAD'}
+            </h1>
+
+            <p
+              className="mt-8 inline-block px-4 py-2 text-sm font-black uppercase tracking-[0.22em]"
+              style={{
+                background: template.accent,
+                color: '#020617',
+              }}
+            >
+              {data.jobTitle || 'CREATIVE DIRECTOR'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-12 left-16 right-16 flex justify-between text-[12px]">
+            <div className="grid grid-cols-2 gap-x-10 gap-y-2">
+              <ContactItem icon={Phone} value={data.phone} template={template} />
+              <ContactItem icon={Mail} value={data.email} template={template} />
+              <ContactItem icon={Globe} value={data.website} template={template} />
+              <ContactItem icon={MapPin} value={data.address} template={template} />
+            </div>
+
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'vertical':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute left-0 top-0 h-full w-[25%]"
+            style={{ background: template.accentSoft }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-10 top-10 h-[500px] w-[205px] rounded-[26px] border-2"
+          />
+
+          <div className="absolute left-[31%] top-14 right-14">
+            <LogoVisual
+              logoUrl={data.logoUrl}
+              companyName={data.companyName}
+              template={template}
+            />
+
+            <h1 className="mt-12 text-[62px] font-black leading-[0.85] tracking-[-0.07em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-5 text-[17px]"
+              style={{ color: template.accent }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-14 left-[31%] right-14 grid grid-cols-2 gap-3 text-[12px]">
+            <ContactItem icon={Phone} value={data.phone} template={template} />
+            <ContactItem icon={Mail} value={data.email} template={template} />
+            <ContactItem icon={Globe} value={data.website} template={template} />
+            <ContactItem icon={MapPin} value={data.address} template={template} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'badge':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-8 rounded-[28px] border"
+            style={{ borderColor: `${template.accent}35` }}
+          />
+
+          <div
+            className="absolute left-14 top-14 h-[330px] w-[330px] rounded-full border-[14px]"
+            style={{ borderColor: `${template.accent}22` }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="left-24 top-24 h-[250px] w-[250px] rounded-full border-4"
+          />
+
+          <div className="absolute right-14 top-14 max-w-[470px] text-right">
+            <p
+              className="text-xs font-black uppercase tracking-[0.4em]"
+              style={{ color: template.accent }}
+            >
+              EST. AHADEX
+            </p>
+
+            <h1 className="mt-8 text-[60px] font-black leading-[0.88] tracking-[-0.065em]">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p
+              className="mt-4 text-[16px] uppercase tracking-[0.2em]"
+              style={{ color: template.muted }}
+            >
+              {data.jobTitle || 'Creative Director'}
+            </p>
+          </div>
+
+          <div className="absolute bottom-12 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    case 'cinematic':
+      return (
+        <CardFrame template={template} cardRef={cardRef}>
+          <div
+            className="absolute inset-0"
+            style={{
+              background:
+                `linear-gradient(90deg, rgba(0,0,0,.85), transparent 60%), radial-gradient(circle at 80% 20%, ${template.accent}18, transparent 32%)`,
+            }}
+          />
+
+          <PhotoPanel
+            photoUrl={photo}
+            template={template}
+            className="inset-y-0 right-0 w-[48%] border-l-2"
+          />
+
+          <div className="absolute left-14 top-14 max-w-[570px]">
+            <p
+              className="text-xs font-bold uppercase tracking-[0.45em]"
+              style={{ color: template.accent }}
+            >
+              BLACK LABEL
+            </p>
+
+            <h1 className="mt-10 text-[66px] font-black leading-[0.84] tracking-[-0.07em] text-white">
+              {data.fullName || 'Mohammad Ahad'}
+            </h1>
+
+            <p className="mt-5 text-[17px] uppercase tracking-[0.2em] text-zinc-400">
+              {data.jobTitle || 'Creative Director'}
+            </p>
+
+            <div className="mt-8 h-px w-32" style={{ background: template.accent }} />
+          </div>
+
+          <div className="absolute bottom-14 left-14 right-[53%] space-y-2 text-[12px] text-zinc-300">
+            <ContactItem icon={Phone} value={data.phone} template={template} />
+            <ContactItem icon={Mail} value={data.email} template={template} />
+            <ContactItem icon={Globe} value={data.website} template={template} />
+          </div>
+
+          <div className="absolute bottom-12 right-14">
+            <QrVisual src={qrSrc} />
+          </div>
+        </CardFrame>
+      );
+
+    default:
+      return null;
   }
-
-  return (
-    <CardFrame template={template} cardRef={cardRef}>
-      <div
-        className="absolute inset-y-0 left-0 w-[42%]"
-        style={{ background: template.accentSoft }}
-      />
-
-      <div className="absolute left-14 top-14">
-        <LogoVisual
-          logoUrl={data.logoUrl}
-          companyName={data.companyName}
-          template={template}
-        />
-
-        <h1 className="mt-12 text-[52px] font-black leading-none tracking-[-0.06em]">
-          {data.fullName || 'YOUR NAME'}
-        </h1>
-
-        <p
-          className="mt-3 text-[16px]"
-          style={{ color: template.accent }}
-        >
-          {data.jobTitle || 'YOUR POSITION'}
-        </p>
-      </div>
-
-      <div className="absolute right-14 top-14">
-        <ProfileVisual
-          photoUrl={data.photoUrl}
-          accent={template.accent}
-          large
-        />
-      </div>
-
-      <div className="absolute bottom-14 right-14 w-[430px]">
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-[12px]">
-          <ContactItem
-            icon={Phone}
-            value={data.phone}
-            template={template}
-          />
-          <ContactItem
-            icon={MessageCircle}
-            value={data.whatsapp}
-            template={template}
-          />
-          <ContactItem
-            icon={Mail}
-            value={data.email}
-            template={template}
-          />
-          <ContactItem
-            icon={Globe}
-            value={data.website}
-            template={template}
-          />
-          <ContactItem
-            icon={MapPin}
-            value={data.address}
-            template={template}
-          />
-          <ContactItem
-            icon={Linkedin}
-            value={data.linkedin}
-            template={template}
-          />
-        </div>
-      </div>
-
-      <div className="absolute bottom-14 left-14">
-        {qrSrc ? <QrVisual src={qrSrc} /> : null}
-      </div>
-    </CardFrame>
-  );
 };
 
-export const VisitingCardEditorPage: React.FC = () => {
+const VisitingCardEditorPage: React.FC = () => {
   const navigate = useNavigate();
   const { templateId } = useParams<{ templateId: string }>();
   const { addToast } = useToast();
@@ -1554,12 +1864,10 @@ export const VisitingCardEditorPage: React.FC = () => {
     [templateId],
   );
 
-  const [data, setData] = useState<CardData>(EMPTY_CARD_DATA);
+  const [data, setData] = useState<CardData>(DEMO_CARD_DATA);
   const [qrSrc, setQrSrc] = useState('');
   const [isExporting, setIsExporting] = useState(false);
-  const [exportType, setExportType] = useState<
-    'jpg' | 'pdf' | null
-  >(null);
+  const [exportType, setExportType] = useState<'jpg' | 'pdf' | null>(null);
 
   const cardRef = useRef<HTMLDivElement | null>(null);
   const exportHostRef = useRef<HTMLDivElement | null>(null);
@@ -1576,9 +1884,7 @@ export const VisitingCardEditorPage: React.FC = () => {
 
   const updateFile =
     (key: 'photoUrl' | 'logoUrl') =>
-    async (
-      event: React.ChangeEvent<HTMLInputElement>,
-    ) => {
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
 
       if (!file) return;
@@ -1627,9 +1933,7 @@ export const VisitingCardEditorPage: React.FC = () => {
       .filter((value) => value.trim())
       .join(' | ');
 
-    const value = qrPayload || 'https://ahadex.fun';
-
-    QRCode.toDataURL(value, {
+    QRCode.toDataURL(qrPayload || 'https://ahadex.fun', {
       width: 700,
       margin: 2,
       errorCorrectionLevel: 'H',
@@ -1680,13 +1984,13 @@ export const VisitingCardEditorPage: React.FC = () => {
     exportCard.style.minHeight = `${CARD_HEIGHT_PX}px`;
     exportCard.style.maxHeight = `${CARD_HEIGHT_PX}px`;
     exportCard.style.aspectRatio = 'auto';
-    exportCard.style.borderRadius = '0';
     exportCard.style.position = 'relative';
     exportCard.style.left = 'auto';
     exportCard.style.top = 'auto';
     exportCard.style.transform = 'none';
     exportCard.style.margin = '0';
     exportCard.style.boxShadow = 'none';
+    exportCard.style.borderRadius = '0';
 
     host.appendChild(exportCard);
 
@@ -1720,7 +2024,7 @@ export const VisitingCardEditorPage: React.FC = () => {
     exportHostRef.current.style.display = 'none';
   };
 
-  const renderExportJpeg = async (): Promise<string> => {
+  const renderExportJpeg = async () => {
     const exportCard = await buildExportSurface();
 
     try {
@@ -1844,10 +2148,11 @@ export const VisitingCardEditorPage: React.FC = () => {
   };
 
   const resetCard = () => {
-    setData(EMPTY_CARD_DATA);
+    setData(DEMO_CARD_DATA);
+
     addToast(
-      'Editor reset',
-      'All entered information has been cleared.',
+      'Demo restored',
+      'Mohammad Ahad demo information has been restored.',
       'success',
     );
   };
@@ -1856,12 +2161,13 @@ export const VisitingCardEditorPage: React.FC = () => {
     <PageTransition>
       <SEOHead
         title={`${template.name} 1-Side Visiting Card Generator | AHADEX TOOLS`}
-        description={`Create a professional one-sided visiting card using the ${template.name} template. Add your photo, logo, contact information and QR code, then export a print-ready JPG or exact 3.5 × 2 inch PDF.`}
+        description={`Create a premium one-sided visiting card using the ${template.name} template. Add your photo, logo, contact information and QR code, then export a print-ready JPG or exact 3.5 × 2 inch PDF.`}
         keywords={[
           '1-side visiting card generator',
           'single side business card generator',
-          'visiting card maker',
+          'premium visiting card maker',
           'business card maker',
+          'photo visiting card generator',
           'print ready visiting card',
           'JPG visiting card',
           'PDF visiting card',
@@ -1875,9 +2181,7 @@ export const VisitingCardEditorPage: React.FC = () => {
             <button
               type="button"
               onClick={() =>
-                navigate(
-                  '/tools/visiting-card-generator/one-side',
-                )
+                navigate('/tools/visiting-card-generator/one-side')
               }
               className="inline-flex w-fit items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-4 py-2.5 text-sm font-semibold text-slate-200 transition hover:border-cyan-400/30 hover:bg-white/[0.07]"
             >
@@ -1885,13 +2189,17 @@ export const VisitingCardEditorPage: React.FC = () => {
               Back to 1-Side Templates
             </button>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1.5 text-xs font-bold text-cyan-300">
                 1-SIDE ONLY
               </span>
 
               <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-400">
                 {template.name}
+              </span>
+
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 text-xs font-semibold text-slate-400">
+                {Object.keys(TEMPLATE_STYLES).length} Designs
               </span>
             </div>
           </div>
@@ -1913,7 +2221,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                   className="text-xs font-bold uppercase tracking-[0.25em]"
                   style={{ color: template.accent }}
                 >
-                  1-Side Visiting Card
+                  Premium 1-Side Visiting Card
                 </p>
 
                 <h1 className="mt-1 text-2xl font-black tracking-tight text-white sm:text-3xl">
@@ -1923,8 +2231,8 @@ export const VisitingCardEditorPage: React.FC = () => {
             </div>
 
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400">
-              {template.description} Enter your information, preview the
-              finished card, then export the exact print dimensions.
+              {template.description} Every design keeps a dedicated
+              professional photo as a core visual element.
             </p>
           </div>
 
@@ -1936,7 +2244,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                     Card Information
                   </h2>
                   <p className="mt-1 text-xs text-slate-500">
-                    All fields start empty.
+                    Demo content uses Mohammad Ahad. Replace anything you need.
                   </p>
                 </div>
 
@@ -1946,14 +2254,14 @@ export const VisitingCardEditorPage: React.FC = () => {
                   className="inline-flex items-center gap-2 rounded-xl border border-white/10 px-3 py-2 text-xs font-bold text-slate-300 transition hover:bg-white/[0.05]"
                 >
                   <RefreshCw className="h-3.5 w-3.5" />
-                  Reset
+                  Demo
                 </button>
               </div>
 
               <div className="space-y-4">
                 <UploadBox
                   label="Profile Photo"
-                  description="JPG, PNG or WebP"
+                  description="Every template uses this photo"
                   icon={ImagePlus}
                   accept="image/*"
                   preview={data.photoUrl}
@@ -1962,7 +2270,7 @@ export const VisitingCardEditorPage: React.FC = () => {
 
                 <UploadBox
                   label="Company Logo"
-                  description="Transparent PNG recommended"
+                  description="PNG recommended"
                   icon={Building2}
                   accept="image/*"
                   preview={data.logoUrl}
@@ -1973,19 +2281,15 @@ export const VisitingCardEditorPage: React.FC = () => {
                   <Field
                     label="Full Name"
                     value={data.fullName}
-                    onChange={(value) =>
-                      updateField('fullName', value)
-                    }
-                    placeholder="Your full name"
+                    onChange={(value) => updateField('fullName', value)}
+                    placeholder="Mohammad Ahad"
                     icon={UserRound}
                   />
 
                   <Field
                     label="Job Title"
                     value={data.jobTitle}
-                    onChange={(value) =>
-                      updateField('jobTitle', value)
-                    }
+                    onChange={(value) => updateField('jobTitle', value)}
                     placeholder="Creative Director"
                     icon={Sparkles}
                   />
@@ -1993,19 +2297,15 @@ export const VisitingCardEditorPage: React.FC = () => {
                   <Field
                     label="Company"
                     value={data.companyName}
-                    onChange={(value) =>
-                      updateField('companyName', value)
-                    }
-                    placeholder="Company name"
+                    onChange={(value) => updateField('companyName', value)}
+                    placeholder="AHADEX"
                     icon={Building2}
                   />
 
                   <Field
                     label="Phone"
                     value={data.phone}
-                    onChange={(value) =>
-                      updateField('phone', value)
-                    }
+                    onChange={(value) => updateField('phone', value)}
                     placeholder="+971 50 000 0000"
                     icon={Phone}
                   />
@@ -2013,9 +2313,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                   <Field
                     label="WhatsApp"
                     value={data.whatsapp}
-                    onChange={(value) =>
-                      updateField('whatsapp', value)
-                    }
+                    onChange={(value) => updateField('whatsapp', value)}
                     placeholder="+971 50 000 0000"
                     icon={MessageCircle}
                   />
@@ -2023,60 +2321,48 @@ export const VisitingCardEditorPage: React.FC = () => {
                   <Field
                     label="Email"
                     value={data.email}
-                    onChange={(value) =>
-                      updateField('email', value)
-                    }
-                    placeholder="hello@example.com"
+                    onChange={(value) => updateField('email', value)}
+                    placeholder="hello@ahadex.fun"
                     icon={Mail}
                   />
 
                   <Field
                     label="Website"
                     value={data.website}
-                    onChange={(value) =>
-                      updateField('website', value)
-                    }
-                    placeholder="https://example.com"
+                    onChange={(value) => updateField('website', value)}
+                    placeholder="ahadex.fun"
                     icon={Globe}
                   />
 
                   <Field
                     label="Address"
                     value={data.address}
-                    onChange={(value) =>
-                      updateField('address', value)
-                    }
-                    placeholder="Dubai, UAE"
+                    onChange={(value) => updateField('address', value)}
+                    placeholder="Sharjah · Dubai · UAE"
                     icon={MapPin}
                   />
 
                   <Field
                     label="LinkedIn"
                     value={data.linkedin}
-                    onChange={(value) =>
-                      updateField('linkedin', value)
-                    }
-                    placeholder="linkedin.com/in/username"
+                    onChange={(value) => updateField('linkedin', value)}
+                    placeholder="linkedin.com/in/mohammadahad"
                     icon={Linkedin}
                   />
 
                   <Field
                     label="Instagram"
                     value={data.instagram}
-                    onChange={(value) =>
-                      updateField('instagram', value)
-                    }
-                    placeholder="@username"
+                    onChange={(value) => updateField('instagram', value)}
+                    placeholder="@mohammadahad"
                     icon={Instagram}
                   />
 
                   <Field
                     label="Short Bio"
                     value={data.bio}
-                    onChange={(value) =>
-                      updateField('bio', value)
-                    }
-                    placeholder="Short professional introduction"
+                    onChange={(value) => updateField('bio', value)}
+                    placeholder="Digital creator building modern tools."
                     icon={Sparkles}
                     multiline
                   />
@@ -2136,21 +2422,29 @@ export const VisitingCardEditorPage: React.FC = () => {
                           aspectRatio: '1050 / 600',
                         }}
                       >
-                        <div className="absolute inset-0 origin-top-left">
-                          <div
-                            style={{
-                              width: '100%',
-                              height: '100%',
-                            }}
-                          >
-                            <OneSideCard
-                              template={template}
-                              data={data}
-                              qrSrc={qrSrc}
-                              cardRef={cardRef}
-                            />
-                          </div>
+                        <div
+                          className="absolute left-0 top-0 origin-top-left"
+                          style={{
+                            width: `${CARD_WIDTH_PX}px`,
+                            height: `${CARD_HEIGHT_PX}px`,
+                            transform: 'scale(var(--card-scale))',
+                          }}
+                        >
+                          <CardContent
+                            template={template}
+                            data={data}
+                            qrSrc={qrSrc}
+                            cardRef={cardRef}
+                          />
                         </div>
+
+                        <style>
+                          {`
+                            .card-preview-scale {
+                              --card-scale: 1;
+                            }
+                          `}
+                        </style>
                       </div>
                     </div>
                   </div>
@@ -2159,10 +2453,10 @@ export const VisitingCardEditorPage: React.FC = () => {
                     <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                       <Check className="h-4 w-4 text-emerald-400" />
                       <p className="mt-2 text-xs font-bold text-white">
-                        Print-ready JPG
+                        24 Premium Designs
                       </p>
                       <p className="mt-1 text-[11px] text-slate-500">
-                        1050 × 600 px
+                        Photo-first layouts
                       </p>
                     </div>
 
@@ -2179,10 +2473,10 @@ export const VisitingCardEditorPage: React.FC = () => {
                     <div className="rounded-2xl border border-white/10 bg-white/[0.035] p-4">
                       <Check className="h-4 w-4 text-emerald-400" />
                       <p className="mt-2 text-xs font-bold text-white">
-                        QR Included
+                        High Quality JPG
                       </p>
                       <p className="mt-1 text-[11px] text-slate-500">
-                        Contact information
+                        1050 × 600 px
                       </p>
                     </div>
                   </div>
@@ -2206,4 +2500,10 @@ export const VisitingCardEditorPage: React.FC = () => {
   );
 };
 
-export default VisitingCardEditorPage;
+export default VisitingCardEditorPage;",
+[L3]   "title": "VisitingCardEditorPage.tsx",
+[L4]   "modified_date": "2026-09-17T21:37:40Z",
+[L5]   "url": "https://github.com/mdahadvi91/Ahadex-tools-/blob/main/src/pages/VisitingCardEditorPage.tsx",
+[L6]   "display_url": "https://github.com/mdahadvi91/Ahadex-tools-/blob/main/src/pages/VisitingCardEditorPage.tsx",
+[L7]   "display_title": "VisitingCardEditorPage.tsx"
+}
