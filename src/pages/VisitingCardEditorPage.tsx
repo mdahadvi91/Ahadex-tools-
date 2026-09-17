@@ -397,9 +397,7 @@ const QrVisual = ({ value }: { value: string }) => {
   }, [value]);
 
   if (!src) {
-    return (
-      <div className="h-24 w-24 rounded-xl bg-white/90" />
-    );
+    return <div className="h-24 w-24 rounded-xl bg-white/90" />;
   }
 
   return (
@@ -540,7 +538,9 @@ const OneSideCard = ({
 
           <div
             className={`mt-6 grid gap-x-8 gap-y-2 text-[10px] sm:text-xs ${
-              centered ? 'mx-auto max-w-xl sm:grid-cols-2' : 'max-w-2xl sm:grid-cols-2'
+              centered
+                ? 'mx-auto max-w-xl sm:grid-cols-2'
+                : 'max-w-2xl sm:grid-cols-2'
             }`}
             style={{ color: template.muted }}
           >
@@ -631,6 +631,7 @@ const TwoSideCards = ({
 }) => (
   <div className="grid w-full gap-6 lg:grid-cols-2">
     <div
+      data-card-side="front"
       className="relative aspect-[1.75/1] overflow-hidden rounded-[26px] p-8 shadow-2xl sm:p-10"
       style={{
         background: template.background,
@@ -705,6 +706,7 @@ const TwoSideCards = ({
     </div>
 
     <div
+      data-card-side="back"
       className="relative aspect-[1.75/1] overflow-hidden rounded-[26px] p-8 shadow-2xl sm:p-10"
       style={{
         background: template.accentSoft,
@@ -1067,7 +1069,7 @@ export const VisitingCardEditorPage: React.FC = () => {
       }
 
       const images = await Promise.all(
-        cards.map((card) =>
+        cards.slice(0, 2).map((card) =>
           toPng(card, {
             cacheBust: true,
             pixelRatio: 3,
