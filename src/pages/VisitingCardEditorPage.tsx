@@ -5,7 +5,6 @@ import jsPDF from 'jspdf';
 import QRCode from 'qrcode';
 import {
   ArrowLeft,
-  ArrowRight,
   BriefcaseBusiness,
   Building2,
   Check,
@@ -32,6 +31,18 @@ import { useToast } from '../context/ToastContext';
 
 type CardMode = 'one-side' | 'two-side';
 
+type TemplateLayout =
+  | 'portrait'
+  | 'luxury'
+  | 'editorial'
+  | 'minimal'
+  | 'grid'
+  | 'asymmetric'
+  | 'glass'
+  | 'frame'
+  | 'bold'
+  | 'split';
+
 type TemplateStyle = {
   name: string;
   category: string;
@@ -40,7 +51,7 @@ type TemplateStyle = {
   background: string;
   foreground: string;
   muted: string;
-  layout: 'left' | 'center' | 'split' | 'dark';
+  layout: TemplateLayout;
 };
 
 type CardData = {
@@ -59,183 +70,188 @@ type CardData = {
   bio: string;
 };
 
+const CARD_WIDTH_PX = 1050;
+const CARD_HEIGHT_PX = 600;
+const CARD_WIDTH_IN = 3.5;
+const CARD_HEIGHT_IN = 2;
+
 const TEMPLATE_STYLES: Record<string, TemplateStyle> = {
   '01': {
-    name: 'Executive Edge',
-    category: 'Corporate',
-    accent: '#22d3ee',
-    accentSoft: '#083344',
+    name: 'Executive Portrait',
+    category: 'Executive',
+    accent: '#38bdf8',
+    accentSoft: '#082f49',
     background: '#07111f',
     foreground: '#f8fafc',
     muted: '#94a3b8',
-    layout: 'left',
+    layout: 'portrait',
   },
   '02': {
-    name: 'Midnight Gold',
+    name: 'Monogram Noir',
     category: 'Luxury',
-    accent: '#fbbf24',
-    accentSoft: '#422006',
-    background: '#11100d',
-    foreground: '#fff7ed',
+    accent: '#d4af6a',
+    accentSoft: '#3a2b12',
+    background: '#100e0b',
+    foreground: '#fff8e7',
     muted: '#a8a29e',
-    layout: 'center',
+    layout: 'luxury',
   },
   '03': {
-    name: 'Tech Grid',
-    category: 'Technology',
-    accent: '#818cf8',
-    accentSoft: '#1e1b4b',
-    background: '#090b18',
-    foreground: '#f8fafc',
-    muted: '#9ca3af',
-    layout: 'split',
+    name: 'Editorial Split',
+    category: 'Editorial',
+    accent: '#fb7185',
+    accentSoft: '#4c0519',
+    background: '#fffaf7',
+    foreground: '#18181b',
+    muted: '#71717a',
+    layout: 'editorial',
   },
   '04': {
-    name: 'Pure Minimal',
+    name: 'Swiss Minimal',
     category: 'Minimal',
-    accent: '#0f172a',
-    accentSoft: '#e2e8f0',
+    accent: '#111827',
+    accentSoft: '#e5e7eb',
     background: '#f8fafc',
     foreground: '#0f172a',
     muted: '#64748b',
-    layout: 'left',
+    layout: 'minimal',
   },
   '05': {
-    name: 'Royal Violet',
+    name: 'Royal Identity',
     category: 'Premium',
     accent: '#c084fc',
     accentSoft: '#3b0764',
-    background: '#170b25',
+    background: '#160b24',
     foreground: '#faf5ff',
     muted: '#c4b5fd',
-    layout: 'center',
+    layout: 'luxury',
   },
   '06': {
-    name: 'Ocean Professional',
-    category: 'Business',
-    accent: '#38bdf8',
-    accentSoft: '#082f49',
-    background: '#08202d',
-    foreground: '#f0f9ff',
-    muted: '#7dd3fc',
-    layout: 'split',
+    name: 'Architect Grid',
+    category: 'Architecture',
+    accent: '#60a5fa',
+    accentSoft: '#172554',
+    background: '#081321',
+    foreground: '#eff6ff',
+    muted: '#93c5fd',
+    layout: 'grid',
   },
   '07': {
-    name: 'Emerald Studio',
+    name: 'Creative Offset',
     category: 'Creative',
     accent: '#34d399',
     accentSoft: '#064e3b',
-    background: '#071a15',
+    background: '#061814',
     foreground: '#ecfdf5',
     muted: '#86efac',
-    layout: 'left',
+    layout: 'asymmetric',
   },
   '08': {
-    name: 'Graphite Line',
-    category: 'Editorial',
-    accent: '#e5e7eb',
+    name: 'Graphite Glass',
+    category: 'Modern',
+    accent: '#e2e8f0',
     accentSoft: '#27272a',
-    background: '#18181b',
+    background: '#111318',
     foreground: '#fafafa',
     muted: '#a1a1aa',
-    layout: 'dark',
+    layout: 'glass',
   },
   '09': {
-    name: 'Cobalt Architect',
-    category: 'Modern',
-    accent: '#60a5fa',
-    accentSoft: '#172554',
-    background: '#071426',
-    foreground: '#eff6ff',
-    muted: '#93c5fd',
-    layout: 'split',
+    name: 'Cobalt Frame',
+    category: 'Corporate',
+    accent: '#2563eb',
+    accentSoft: '#dbeafe',
+    background: '#f8fbff',
+    foreground: '#0f172a',
+    muted: '#64748b',
+    layout: 'frame',
   },
   '10': {
     name: 'Rose Atelier',
     category: 'Personal Brand',
-    accent: '#fb7185',
-    accentSoft: '#4c0519',
-    background: '#1b0a11',
-    foreground: '#fff1f2',
-    muted: '#fda4af',
-    layout: 'center',
+    accent: '#e11d48',
+    accentSoft: '#ffe4e6',
+    background: '#fff7f8',
+    foreground: '#3f0b18',
+    muted: '#881337',
+    layout: 'editorial',
   },
   '11': {
-    name: 'Copper Craft',
+    name: 'Copper Heritage',
     category: 'Heritage',
-    accent: '#fb923c',
+    accent: '#ea580c',
     accentSoft: '#431407',
-    background: '#1c110b',
+    background: '#1a100a',
     foreground: '#fff7ed',
     muted: '#fdba74',
-    layout: 'left',
+    layout: 'frame',
   },
   '12': {
-    name: 'Arctic Clean',
-    category: 'Clean',
-    accent: '#0891b2',
-    accentSoft: '#cffafe',
-    background: '#ecfeff',
-    foreground: '#164e63',
-    muted: '#155e75',
-    layout: 'split',
+    name: 'Aqua Digital',
+    category: 'Technology',
+    accent: '#2dd4bf',
+    accentSoft: '#134e4a',
+    background: '#031817',
+    foreground: '#f0fdfa',
+    muted: '#99f6e4',
+    layout: 'grid',
   },
   '13': {
-    name: 'Onyx Signature',
+    name: 'Obsidian Signature',
     category: 'Signature',
     accent: '#f8fafc',
     accentSoft: '#334155',
     background: '#020617',
     foreground: '#f8fafc',
     muted: '#94a3b8',
-    layout: 'dark',
+    layout: 'bold',
   },
   '14': {
-    name: 'Aqua Digital',
-    category: 'Digital',
-    accent: '#2dd4bf',
-    accentSoft: '#134e4a',
-    background: '#041b1b',
-    foreground: '#f0fdfa',
-    muted: '#99f6e4',
-    layout: 'left',
-  },
-  '15': {
-    name: 'Solar Modern',
+    name: 'Solar Statement',
     category: 'Bold',
     accent: '#facc15',
     accentSoft: '#422006',
-    background: '#15120a',
+    background: '#171208',
     foreground: '#fefce8',
     muted: '#fde68a',
+    layout: 'bold',
+  },
+  '15': {
+    name: 'Ocean Studio',
+    category: 'Studio',
+    accent: '#06b6d4',
+    accentSoft: '#164e63',
+    background: '#061923',
+    foreground: '#ecfeff',
+    muted: '#67e8f9',
     layout: 'split',
   },
   '16': {
-    name: 'Silver Frame',
+    name: 'Silver Classic',
     category: 'Classic',
-    accent: '#cbd5e1',
-    accentSoft: '#334155',
-    background: '#111827',
-    foreground: '#f8fafc',
-    muted: '#94a3b8',
-    layout: 'center',
+    accent: '#64748b',
+    accentSoft: '#e2e8f0',
+    background: '#f8fafc',
+    foreground: '#0f172a',
+    muted: '#64748b',
+    layout: 'frame',
   },
 };
 
-const DEFAULT_CARD_DATA: CardData = {
+const EMPTY_CARD_DATA: CardData = {
   photoUrl: null,
   logoUrl: null,
-  fullName: 'Alex Morgan',
-  jobTitle: 'Creative Director',
-  companyName: 'Nova Studio',
-  phone: '+1 555 018 2040',
-  whatsapp: '+1 555 018 2040',
-  email: 'hello@novastudio.com',
-  website: 'novastudio.com',
-  address: 'New York · London · Dubai',
-  linkedin: 'linkedin.com/in/alexmorgan',
-  instagram: '@alexmorgan',
-  bio: 'Building memorable brands and digital experiences.',
+  fullName: '',
+  jobTitle: '',
+  companyName: '',
+  phone: '',
+  whatsapp: '',
+  email: '',
+  website: '',
+  address: '',
+  linkedin: '',
+  instagram: '',
+  bio: '',
 };
 
 const getMode = (value?: string): CardMode =>
@@ -313,12 +329,12 @@ const UploadBox = ({
     />
 
     <div className="flex items-center gap-3">
-      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-cyan-400/10 text-cyan-300">
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-cyan-400/10 text-cyan-300">
         {preview ? (
           <img
             src={preview}
             alt=""
-            className="h-full w-full rounded-xl object-cover"
+            className="h-full w-full object-cover"
           />
         ) : (
           <Icon className="h-5 w-5" />
@@ -379,6 +395,7 @@ const QrVisual = ({ value }: { value: string }) => {
     QRCode.toDataURL(value || 'https://ahadex.fun', {
       width: 320,
       margin: 1,
+      errorCorrectionLevel: 'H',
       color: {
         dark: '#111827',
         light: '#ffffff',
@@ -397,7 +414,7 @@ const QrVisual = ({ value }: { value: string }) => {
   }, [value]);
 
   if (!src) {
-    return <div className="h-24 w-24 rounded-xl bg-white/90" />;
+    return <div className="h-24 w-24 rounded-xl bg-white" />;
   }
 
   return (
@@ -416,15 +433,24 @@ const OneSideCard = ({
   template: TemplateStyle;
   data: CardData;
 }) => {
-  const centered = template.layout === 'center';
+  const centered = template.layout === 'luxury' || template.layout === 'editorial';
+  const hasAnyContact =
+    Boolean(data.phone) ||
+    Boolean(data.whatsapp) ||
+    Boolean(data.email) ||
+    Boolean(data.website) ||
+    Boolean(data.address) ||
+    Boolean(data.linkedin) ||
+    Boolean(data.instagram);
 
   return (
     <div
+      data-export-card="one-side"
       className="relative aspect-[1.75/1] w-full overflow-hidden rounded-[26px] p-8 shadow-2xl sm:p-10 lg:p-12"
       style={{
         background: template.background,
         color: template.foreground,
-        boxShadow: `0 35px 90px ${template.accent}18`,
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -453,9 +479,39 @@ const OneSideCard = ({
         />
       )}
 
-      {template.layout === 'dark' && (
+      {template.layout === 'grid' && (
         <div
-          className="absolute bottom-0 left-0 top-0 w-1.5"
+          className="absolute inset-0 opacity-25"
+          style={{
+            backgroundImage: `
+              linear-gradient(${template.accent}18 1px, transparent 1px),
+              linear-gradient(90deg, ${template.accent}18 1px, transparent 1px)
+            `,
+            backgroundSize: '48px 48px',
+          }}
+        />
+      )}
+
+      {template.layout === 'frame' && (
+        <>
+          <div
+            className="absolute inset-5 rounded-[18px] border-2"
+            style={{ borderColor: `${template.accent}44` }}
+          />
+          <div
+            className="absolute left-8 top-8 h-8 w-8 border-l-2 border-t-2"
+            style={{ borderColor: template.accent }}
+          />
+          <div
+            className="absolute bottom-8 right-8 h-8 w-8 border-b-2 border-r-2"
+            style={{ borderColor: template.accent }}
+          />
+        </>
+      )}
+
+      {template.layout === 'bold' && (
+        <div
+          className="absolute bottom-0 left-0 h-1.5 w-[48%]"
           style={{ background: template.accent }}
         />
       )}
@@ -481,7 +537,7 @@ const OneSideCard = ({
               ? 'ml-auto w-[64%]'
               : centered
                 ? 'w-full'
-                : 'ml-8'
+                : 'ml-8 min-w-0'
           }
         >
           <div
@@ -498,7 +554,7 @@ const OneSideCard = ({
             ) : null}
 
             <span
-              className="text-xs font-black uppercase tracking-[0.28em]"
+              className="max-w-[75%] truncate text-xs font-black uppercase tracking-[0.28em]"
               style={{ color: template.accent }}
             >
               {data.companyName || 'YOUR COMPANY'}
@@ -514,7 +570,7 @@ const OneSideCard = ({
             </div>
           )}
 
-          <h2 className="text-3xl font-black tracking-tight sm:text-5xl">
+          <h2 className="break-words text-3xl font-black tracking-tight sm:text-5xl">
             {data.fullName || 'Your Name'}
           </h2>
 
@@ -536,84 +592,95 @@ const OneSideCard = ({
             </p>
           ) : null}
 
-          <div
-            className={`mt-6 grid gap-x-8 gap-y-2 text-[10px] sm:text-xs ${
-              centered
-                ? 'mx-auto max-w-xl sm:grid-cols-2'
-                : 'max-w-2xl sm:grid-cols-2'
-            }`}
-            style={{ color: template.muted }}
-          >
-            {data.phone && (
-              <div className="flex items-center gap-2">
-                <Phone
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.phone}</span>
-              </div>
-            )}
+          {hasAnyContact && (
+            <div
+              className={`mt-6 grid gap-x-8 gap-y-2 text-[10px] sm:text-xs ${
+                centered
+                  ? 'mx-auto max-w-xl sm:grid-cols-2'
+                  : 'max-w-2xl sm:grid-cols-2'
+              }`}
+              style={{ color: template.muted }}
+            >
+              {data.phone && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Phone
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.phone}</span>
+                </div>
+              )}
 
-            {data.whatsapp && (
-              <div className="flex items-center gap-2">
-                <MessageCircle
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.whatsapp}</span>
-              </div>
-            )}
+              {data.whatsapp && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <MessageCircle
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.whatsapp}</span>
+                </div>
+              )}
 
-            {data.email && (
-              <div className="flex items-center gap-2">
-                <Mail
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.email}</span>
-              </div>
-            )}
+              {data.email && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Mail
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.email}</span>
+                </div>
+              )}
 
-            {data.website && (
-              <div className="flex items-center gap-2">
-                <Globe
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.website}</span>
-              </div>
-            )}
+              {data.website && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Globe
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.website}</span>
+                </div>
+              )}
 
-            {data.address && (
-              <div className="flex items-center gap-2">
-                <MapPin
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.address}</span>
-              </div>
-            )}
+              {data.address && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <MapPin
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.address}</span>
+                </div>
+              )}
 
-            {data.linkedin && (
-              <div className="flex items-center gap-2">
-                <Linkedin
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.linkedin}</span>
-              </div>
-            )}
+              {data.linkedin && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Linkedin
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.linkedin}</span>
+                </div>
+              )}
 
-            {data.instagram && (
-              <div className="flex items-center gap-2">
-                <Instagram
-                  className="h-3.5 w-3.5 shrink-0"
-                  style={{ color: template.accent }}
-                />
-                <span>{data.instagram}</span>
-              </div>
-            )}
-          </div>
+              {data.instagram && (
+                <div className="flex min-w-0 items-center gap-2">
+                  <Instagram
+                    className="h-3.5 w-3.5 shrink-0"
+                    style={{ color: template.accent }}
+                  />
+                  <span className="truncate">{data.instagram}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {!hasAnyContact && !data.bio && (
+            <p
+              className="mt-5 text-[10px]"
+              style={{ color: template.muted }}
+            >
+              Add your contact information to complete the card.
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -636,7 +703,7 @@ const TwoSideCards = ({
       style={{
         background: template.background,
         color: template.foreground,
-        boxShadow: `0 30px 70px ${template.accent}18`,
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -648,8 +715,8 @@ const TwoSideCards = ({
       />
 
       <div className="relative flex h-full flex-col justify-between">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex min-w-0 items-center justify-between gap-4">
+          <div className="flex min-w-0 items-center gap-3">
             {data.logoUrl ? (
               <img
                 src={data.logoUrl}
@@ -659,7 +726,7 @@ const TwoSideCards = ({
             ) : null}
 
             <span
-              className="text-xs font-black uppercase tracking-[0.25em]"
+              className="truncate text-xs font-black uppercase tracking-[0.25em]"
               style={{ color: template.accent }}
             >
               {data.companyName || 'YOUR COMPANY'}
@@ -667,22 +734,22 @@ const TwoSideCards = ({
           </div>
 
           <span
-            className="text-[9px] font-bold uppercase tracking-[0.2em]"
+            className="shrink-0 text-[9px] font-bold uppercase tracking-[0.2em]"
             style={{ color: template.muted }}
           >
             FRONT
           </span>
         </div>
 
-        <div className="flex items-center gap-6">
+        <div className="flex min-w-0 items-center gap-6">
           <ProfileVisual
             photoUrl={data.photoUrl}
             accent={template.accent}
             large
           />
 
-          <div>
-            <h2 className="text-3xl font-black tracking-tight sm:text-4xl">
+          <div className="min-w-0">
+            <h2 className="break-words text-3xl font-black tracking-tight sm:text-4xl">
               {data.fullName || 'Your Name'}
             </h2>
 
@@ -696,11 +763,13 @@ const TwoSideCards = ({
         </div>
 
         <div
-          className="flex items-center justify-between text-[10px]"
+          className="flex items-center justify-between gap-4 text-[10px]"
           style={{ color: template.muted }}
         >
-          <span>{data.website || 'yourwebsite.com'}</span>
-          <span>Professional identity</span>
+          <span className="truncate">
+            {data.website || 'yourwebsite.com'}
+          </span>
+          <span className="shrink-0">Professional identity</span>
         </div>
       </div>
     </div>
@@ -711,7 +780,7 @@ const TwoSideCards = ({
       style={{
         background: template.accentSoft,
         color: template.foreground,
-        boxShadow: `0 30px 70px ${template.accent}12`,
+        boxSizing: 'border-box',
       }}
     >
       <div
@@ -743,84 +812,84 @@ const TwoSideCards = ({
           style={{ color: template.muted }}
         >
           {data.phone && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Phone
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.phone}</span>
+              <span className="truncate">{data.phone}</span>
             </div>
           )}
 
           {data.whatsapp && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <MessageCircle
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.whatsapp}</span>
+              <span className="truncate">{data.whatsapp}</span>
             </div>
           )}
 
           {data.email && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Mail
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.email}</span>
+              <span className="truncate">{data.email}</span>
             </div>
           )}
 
           {data.website && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Globe
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.website}</span>
+              <span className="truncate">{data.website}</span>
             </div>
           )}
 
           {data.address && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <MapPin
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.address}</span>
+              <span className="truncate">{data.address}</span>
             </div>
           )}
 
           {data.linkedin && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Linkedin
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.linkedin}</span>
+              <span className="truncate">{data.linkedin}</span>
             </div>
           )}
 
           {data.instagram && (
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2">
               <Instagram
-                className="h-3.5 w-3.5"
+                className="h-3.5 w-3.5 shrink-0"
                 style={{ color: template.accent }}
               />
-              <span>{data.instagram}</span>
+              <span className="truncate">{data.instagram}</span>
             </div>
           )}
         </div>
 
         <div className="flex items-end justify-between gap-5">
-          <div className="max-w-[65%]">
-            <p className="text-sm font-bold">
+          <div className="min-w-0 max-w-[65%]">
+            <p className="break-words text-sm font-bold">
               {data.bio || 'Connect with me.'}
             </p>
 
             <p
-              className="mt-2 text-[10px]"
+              className="mt-2 truncate text-[10px]"
               style={{ color: template.muted }}
             >
               {data.companyName || 'Your Company'}
@@ -834,6 +903,75 @@ const TwoSideCards = ({
   </div>
 );
 
+const waitForImages = async (root: HTMLElement) => {
+  const images = Array.from(root.querySelectorAll('img'));
+
+  await Promise.all(
+    images.map(
+      (image) =>
+        new Promise<void>((resolve) => {
+          if (image.complete) {
+            resolve();
+            return;
+          }
+
+          const finish = () => resolve();
+
+          image.addEventListener('load', finish, { once: true });
+          image.addEventListener('error', finish, { once: true });
+        }),
+    ),
+  );
+};
+
+const createExportClone = async (
+  source: HTMLElement,
+  background: string,
+) => {
+  const clone = source.cloneNode(true) as HTMLElement;
+
+  clone.setAttribute('data-export-clone', 'true');
+
+  Object.assign(clone.style, {
+    position: 'fixed',
+    left: '-12000px',
+    top: '0',
+    width: `${CARD_WIDTH_PX}px`,
+    height: `${CARD_HEIGHT_PX}px`,
+    minWidth: `${CARD_WIDTH_PX}px`,
+    maxWidth: `${CARD_WIDTH_PX}px`,
+    minHeight: `${CARD_HEIGHT_PX}px`,
+    maxHeight: `${CARD_HEIGHT_PX}px`,
+    aspectRatio: 'auto',
+    margin: '0',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    borderRadius: '0px',
+    transform: 'none',
+    zIndex: '-1',
+    background,
+  });
+
+  const descendants = Array.from(
+    clone.querySelectorAll<HTMLElement>('*'),
+  );
+
+  descendants.forEach((element) => {
+    element.style.animation = 'none';
+    element.style.transition = 'none';
+  });
+
+  document.body.appendChild(clone);
+
+  await new Promise<void>((resolve) => {
+    requestAnimationFrame(() => resolve());
+  });
+
+  await waitForImages(clone);
+
+  return clone;
+};
+
 export const VisitingCardEditorPage: React.FC = () => {
   const navigate = useNavigate();
   const { addToast } = useToast();
@@ -842,7 +980,7 @@ export const VisitingCardEditorPage: React.FC = () => {
   const mode = getMode(modeParam);
   const template = getTemplate(templateId);
 
-  const [data, setData] = useState<CardData>(DEFAULT_CARD_DATA);
+  const [data, setData] = useState<CardData>(EMPTY_CARD_DATA);
   const [built, setBuilt] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
@@ -859,6 +997,7 @@ export const VisitingCardEditorPage: React.FC = () => {
       ...current,
       [key]: value,
     }));
+
     setBuilt(false);
   };
 
@@ -871,7 +1010,7 @@ export const VisitingCardEditorPage: React.FC = () => {
         : `https://${website}`;
     }
 
-    return [
+    const vCard = [
       'BEGIN:VCARD',
       'VERSION:3.0',
       `FN:${data.fullName}`,
@@ -882,8 +1021,12 @@ export const VisitingCardEditorPage: React.FC = () => {
       `EMAIL:${data.email}`,
       `URL:${data.website}`,
       `ADR:${data.address}`,
+      `X-SOCIALPROFILE;TYPE=linkedin:${data.linkedin}`,
+      `X-SOCIALPROFILE;TYPE=instagram:${data.instagram}`,
       'END:VCARD',
     ].join('\n');
+
+    return vCard;
   }, [data]);
 
   const handleImageUpload = (
@@ -895,14 +1038,17 @@ export const VisitingCardEditorPage: React.FC = () => {
     if (!file) return;
 
     const maxSize =
-      key === 'photoUrl' ? 8 * 1024 * 1024 : 5 * 1024 * 1024;
+      key === 'photoUrl'
+        ? 8 * 1024 * 1024
+        : 5 * 1024 * 1024;
 
     if (!file.type.startsWith('image/')) {
       addToast(
         'Invalid image',
-        'Please select a valid JPG, PNG, WebP or other image file.',
+        'Please select a valid image file.',
         'error',
       );
+
       event.target.value = '';
       return;
     }
@@ -915,6 +1061,7 @@ export const VisitingCardEditorPage: React.FC = () => {
         }.`,
         'error',
       );
+
       event.target.value = '';
       return;
     }
@@ -928,9 +1075,7 @@ export const VisitingCardEditorPage: React.FC = () => {
 
       addToast(
         key === 'photoUrl' ? 'Photo uploaded' : 'Logo uploaded',
-        key === 'photoUrl'
-          ? 'Your profile photo is now in the live preview.'
-          : 'Your company logo is now in the live preview.',
+        'The uploaded image is now visible in the live preview.',
         'success',
       );
     };
@@ -964,166 +1109,322 @@ export const VisitingCardEditorPage: React.FC = () => {
 
     addToast(
       'Card built',
-      'Your visiting card preview is ready to export.',
+      'Your current card is ready for export.',
       'success',
     );
   };
 
-  const exportPng = async () => {
-    const target =
-      mode === 'two-side'
-        ? twoSideRef.current
-        : oneSideRef.current;
+  const exportOneSideJpg = async () => {
+    const source = oneSideRef.current;
 
-    if (!target) return;
+    if (!source) return;
 
     setIsExporting(true);
 
-    try {
-      const dataUrl = await toPng(target, {
-        cacheBust: true,
-        pixelRatio: 3,
-        backgroundColor: template.background,
-      });
-
-      const link = document.createElement('a');
-      link.download = `ahadex-visiting-card-${mode}-${templateId || '01'}.png`;
-      link.href = dataUrl;
-      link.click();
-
-      addToast(
-        'PNG downloaded',
-        'Your high-resolution visiting card image is ready.',
-        'success',
-      );
-    } catch (error) {
-      console.error('PNG export failed:', error);
-
-      addToast(
-        'Export failed',
-        'The card could not be exported as PNG.',
-        'error',
-      );
-    } finally {
-      setIsExporting(false);
-    }
-  };
-
-  const exportJpg = async () => {
-    const target =
-      mode === 'two-side'
-        ? twoSideRef.current
-        : oneSideRef.current;
-
-    if (!target) return;
-
-    setIsExporting(true);
+    let clone: HTMLElement | null = null;
 
     try {
-      const dataUrl = await toJpeg(target, {
+      const card = source.querySelector<HTMLElement>(
+        '[data-export-card="one-side"]',
+      );
+
+      if (!card) {
+        throw new Error('One-side export card not found.');
+      }
+
+      clone = await createExportClone(
+        card,
+        template.background,
+      );
+
+      const dataUrl = await toJpeg(clone, {
         cacheBust: true,
-        pixelRatio: 3,
+        pixelRatio: 1,
         quality: 0.98,
+        width: CARD_WIDTH_PX,
+        height: CARD_HEIGHT_PX,
         backgroundColor: template.background,
       });
 
       const link = document.createElement('a');
-      link.download = `ahadex-visiting-card-${mode}-${templateId || '01'}.jpg`;
+      link.download = `ahadex-visiting-card-one-side-${
+        templateId || '01'
+      }.jpg`;
       link.href = dataUrl;
       link.click();
 
       addToast(
         'JPG downloaded',
-        'Your high-resolution visiting card image is ready.',
+        'Full 1050 × 600 px card exported without cropping.',
         'success',
       );
     } catch (error) {
-      console.error('JPG export failed:', error);
+      console.error('1-side JPG export failed:', error);
 
       addToast(
-        'Export failed',
-        'The card could not be exported as JPG.',
+        'JPG export failed',
+        'The complete 1-side card could not be exported.',
         'error',
       );
     } finally {
+      clone?.remove();
       setIsExporting(false);
     }
   };
 
-  const exportPdf = async () => {
-    if (mode !== 'two-side') return;
+  const exportOneSidePdf = async () => {
+    const source = oneSideRef.current;
 
-    const target = twoSideRef.current;
-
-    if (!target) return;
+    if (!source) return;
 
     setIsExporting(true);
 
+    let clone: HTMLElement | null = null;
+
+    try {
+      const card = source.querySelector<HTMLElement>(
+        '[data-export-card="one-side"]',
+      );
+
+      if (!card) {
+        throw new Error('One-side PDF card not found.');
+      }
+
+      clone = await createExportClone(
+        card,
+        template.background,
+      );
+
+      const dataUrl = await toPng(clone, {
+        cacheBust: true,
+        pixelRatio: 1,
+        width: CARD_WIDTH_PX,
+        height: CARD_HEIGHT_PX,
+        backgroundColor: template.background,
+      });
+
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'in',
+        format: [CARD_WIDTH_IN, CARD_HEIGHT_IN],
+        compress: true,
+      });
+
+      pdf.addImage(
+        dataUrl,
+        'PNG',
+        0,
+        0,
+        CARD_WIDTH_IN,
+        CARD_HEIGHT_IN,
+        undefined,
+        'FAST',
+      );
+
+      pdf.save(
+        `ahadex-visiting-card-one-side-${
+          templateId || '01'
+        }.pdf`,
+      );
+
+      addToast(
+        'PDF downloaded',
+        'Full 3.5 × 2 inch 1-side card exported without cropping.',
+        'success',
+      );
+    } catch (error) {
+      console.error('1-side PDF export failed:', error);
+
+      addToast(
+        'PDF export failed',
+        'The complete 1-side card could not be exported.',
+        'error',
+      );
+    } finally {
+      clone?.remove();
+      setIsExporting(false);
+    }
+  };
+
+  const exportTwoSideJpg = async () => {
+    const source = twoSideRef.current;
+
+    if (!source) return;
+
+    setIsExporting(true);
+
+    const clones: HTMLElement[] = [];
+
     try {
       const cards = Array.from(
-        target.querySelectorAll<HTMLElement>('[data-card-side]'),
-      );
+        source.querySelectorAll<HTMLElement>(
+          '[data-card-side]',
+        ),
+      ).slice(0, 2);
 
       if (cards.length < 2) {
         throw new Error('Both card sides are required.');
       }
 
+      for (const card of cards) {
+        clones.push(
+          await createExportClone(
+            card,
+            template.background,
+          ),
+        );
+      }
+
       const images = await Promise.all(
-        cards.slice(0, 2).map((card) =>
-          toPng(card, {
+        clones.map((clone) =>
+          toJpeg(clone, {
             cacheBust: true,
-            pixelRatio: 3,
+            pixelRatio: 1,
+            quality: 0.98,
+            width: CARD_WIDTH_PX,
+            height: CARD_HEIGHT_PX,
             backgroundColor: template.background,
           }),
         ),
       );
 
-      const first = cards[0];
-      const width = first.offsetWidth;
-      const height = first.offsetHeight;
+      images.forEach((dataUrl, index) => {
+        const link = document.createElement('a');
 
-      const orientation = width >= height ? 'landscape' : 'portrait';
+        link.download = `ahadex-visiting-card-two-side-${
+          templateId || '01'
+        }-${index === 0 ? 'front' : 'back'}.jpg`;
+
+        link.href = dataUrl;
+        link.click();
+      });
+
+      addToast(
+        'JPGs downloaded',
+        'Front and back were exported as full 1050 × 600 px JPG files.',
+        'success',
+      );
+    } catch (error) {
+      console.error('2-side JPG export failed:', error);
+
+      addToast(
+        'JPG export failed',
+        'The complete two-side card could not be exported.',
+        'error',
+      );
+    } finally {
+      clones.forEach((clone) => clone.remove());
+      setIsExporting(false);
+    }
+  };
+
+  const exportTwoSidePdf = async () => {
+    const source = twoSideRef.current;
+
+    if (!source) return;
+
+    setIsExporting(true);
+
+    const clones: HTMLElement[] = [];
+
+    try {
+      const cards = Array.from(
+        source.querySelectorAll<HTMLElement>(
+          '[data-card-side]',
+        ),
+      ).slice(0, 2);
+
+      if (cards.length < 2) {
+        throw new Error('Both card sides are required.');
+      }
+
+      for (const card of cards) {
+        clones.push(
+          await createExportClone(
+            card,
+            template.background,
+          ),
+        );
+      }
+
+      const images = await Promise.all(
+        clones.map((clone) =>
+          toPng(clone, {
+            cacheBust: true,
+            pixelRatio: 1,
+            width: CARD_WIDTH_PX,
+            height: CARD_HEIGHT_PX,
+            backgroundColor: template.background,
+          }),
+        ),
+      );
 
       const pdf = new jsPDF({
-        orientation,
-        unit: 'px',
-        format: [width, height],
+        orientation: 'landscape',
+        unit: 'in',
+        format: [CARD_WIDTH_IN, CARD_HEIGHT_IN],
         compress: true,
       });
 
-      pdf.addImage(images[0], 'PNG', 0, 0, width, height);
-      pdf.addPage([width, height], orientation);
-      pdf.addImage(images[1], 'PNG', 0, 0, width, height);
+      pdf.addImage(
+        images[0],
+        'PNG',
+        0,
+        0,
+        CARD_WIDTH_IN,
+        CARD_HEIGHT_IN,
+        undefined,
+        'FAST',
+      );
+
+      pdf.addPage(
+        [CARD_WIDTH_IN, CARD_HEIGHT_IN],
+        'landscape',
+      );
+
+      pdf.addImage(
+        images[1],
+        'PNG',
+        0,
+        0,
+        CARD_WIDTH_IN,
+        CARD_HEIGHT_IN,
+        undefined,
+        'FAST',
+      );
 
       pdf.save(
-        `ahadex-visiting-card-two-side-${templateId || '01'}.pdf`,
+        `ahadex-visiting-card-two-side-${
+          templateId || '01'
+        }.pdf`,
       );
 
       addToast(
         'PDF downloaded',
-        'Your two-side print-ready card PDF is ready.',
+        'Front and back were exported as separate full-size pages.',
         'success',
       );
     } catch (error) {
-      console.error('PDF export failed:', error);
+      console.error('2-side PDF export failed:', error);
 
       addToast(
         'PDF export failed',
-        'The two-side card could not be exported.',
+        'The complete two-side card could not be exported.',
         'error',
       );
     } finally {
+      clones.forEach((clone) => clone.remove());
       setIsExporting(false);
     }
   };
 
   const resetForm = () => {
-    setData(DEFAULT_CARD_DATA);
+    setData(EMPTY_CARD_DATA);
     setBuilt(false);
 
     addToast(
-      'Form reset',
-      'The editor has been restored to the default demo data.',
+      'Form cleared',
+      'All personal information has been cleared. The selected template remains active.',
       'success',
     );
   };
@@ -1132,7 +1433,9 @@ export const VisitingCardEditorPage: React.FC = () => {
     <>
       <SEOHead
         title={`${template.name} Visiting Card Editor | AHADEX TOOLS`}
-        description={`Create and download a professional ${mode === 'two-side' ? 'two-side' : 'one-side'} visiting card using the ${template.name} template on AHADEX TOOLS.`}
+        description={`Create a professional ${
+          mode === 'two-side' ? 'two-side' : 'one-side'
+        } visiting card with the ${template.name} template using AHADEX TOOLS.`}
         canonical={canonical}
       />
 
@@ -1144,13 +1447,13 @@ export const VisitingCardEditorPage: React.FC = () => {
                 type="button"
                 onClick={() =>
                   navigate(
-                    `/tools/visiting-card-generator/${mode}/template/${templateId || '01'}`,
+                    `/tools/visiting-card-generator/${mode}`,
                   )
                 }
                 className="mb-6 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-4 py-2.5 text-sm font-semibold text-slate-300 transition hover:border-cyan-400/30 hover:bg-white/[0.06] hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Back to Template Preview
+                Back to Templates
               </button>
             </Reveal>
 
@@ -1165,7 +1468,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       </span>
 
                       <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-400">
-                        {mode === 'two-side' ? 'Front + Back' : 'Single Side'}
+                        {mode === 'two-side'
+                          ? 'Front + Back'
+                          : 'Single Side'}
                       </span>
 
                       <span className="rounded-full border border-white/10 bg-white/[0.035] px-3 py-1.5 text-xs font-semibold text-slate-400">
@@ -1178,9 +1483,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                     </h1>
 
                     <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-400 sm:text-base">
-                      Enter your real details, add your photo or logo, review
-                      the live design, then export the finished card in a
-                      high-resolution format.
+                      Enter your real information and watch the selected
+                      design update live. Your personal information starts
+                      empty so no demo data is carried into your card.
                     </p>
                   </div>
 
@@ -1198,6 +1503,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <p className="text-sm font-bold text-white">
                         {template.name}
                       </p>
+
                       <p className="text-xs text-slate-500">
                         {template.category}
                       </p>
@@ -1215,6 +1521,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-300">
                         Step 1
                       </p>
+
                       <h2 className="mt-1 text-xl font-black text-white">
                         Your information
                       </h2>
@@ -1226,7 +1533,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                       className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-semibold text-slate-400 transition hover:text-white"
                     >
                       <RefreshCw className="h-3.5 w-3.5" />
-                      Reset
+                      Clear
                     </button>
                   </div>
 
@@ -1257,7 +1564,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Full Name"
                         value={data.fullName}
-                        onChange={(value) => update('fullName', value)}
+                        onChange={(value) =>
+                          update('fullName', value)
+                        }
                         placeholder="Your full name"
                         icon={UserRound}
                       />
@@ -1265,7 +1574,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Job Title / Profession"
                         value={data.jobTitle}
-                        onChange={(value) => update('jobTitle', value)}
+                        onChange={(value) =>
+                          update('jobTitle', value)
+                        }
                         placeholder="e.g. Creative Director"
                         icon={BriefcaseBusiness}
                       />
@@ -1273,7 +1584,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Company Name"
                         value={data.companyName}
-                        onChange={(value) => update('companyName', value)}
+                        onChange={(value) =>
+                          update('companyName', value)
+                        }
                         placeholder="Your company"
                         icon={Building2}
                       />
@@ -1281,23 +1594,29 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Phone"
                         value={data.phone}
-                        onChange={(value) => update('phone', value)}
-                        placeholder="+1 555 000 0000"
+                        onChange={(value) =>
+                          update('phone', value)
+                        }
+                        placeholder="+971 50 000 0000"
                         icon={Phone}
                       />
 
                       <Field
                         label="WhatsApp"
                         value={data.whatsapp}
-                        onChange={(value) => update('whatsapp', value)}
-                        placeholder="+1 555 000 0000"
+                        onChange={(value) =>
+                          update('whatsapp', value)
+                        }
+                        placeholder="+971 50 000 0000"
                         icon={MessageCircle}
                       />
 
                       <Field
                         label="Email"
                         value={data.email}
-                        onChange={(value) => update('email', value)}
+                        onChange={(value) =>
+                          update('email', value)
+                        }
                         placeholder="you@example.com"
                         icon={Mail}
                       />
@@ -1305,7 +1624,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Website"
                         value={data.website}
-                        onChange={(value) => update('website', value)}
+                        onChange={(value) =>
+                          update('website', value)
+                        }
                         placeholder="yourwebsite.com"
                         icon={Globe}
                       />
@@ -1313,7 +1634,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Address"
                         value={data.address}
-                        onChange={(value) => update('address', value)}
+                        onChange={(value) =>
+                          update('address', value)
+                        }
                         placeholder="City · Country"
                         icon={MapPin}
                       />
@@ -1321,7 +1644,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="LinkedIn"
                         value={data.linkedin}
-                        onChange={(value) => update('linkedin', value)}
+                        onChange={(value) =>
+                          update('linkedin', value)
+                        }
                         placeholder="linkedin.com/in/username"
                         icon={Linkedin}
                       />
@@ -1329,7 +1654,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Instagram"
                         value={data.instagram}
-                        onChange={(value) => update('instagram', value)}
+                        onChange={(value) =>
+                          update('instagram', value)
+                        }
                         placeholder="@username"
                         icon={Instagram}
                       />
@@ -1337,7 +1664,9 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <Field
                         label="Short Bio"
                         value={data.bio}
-                        onChange={(value) => update('bio', value)}
+                        onChange={(value) =>
+                          update('bio', value)
+                        }
                         placeholder="A short professional description"
                         icon={Palette}
                         multiline
@@ -1351,12 +1680,12 @@ export const VisitingCardEditorPage: React.FC = () => {
 
                       <div>
                         <p className="text-sm font-bold text-white">
-                          Live preview
+                          Live preview is active
                         </p>
+
                         <p className="mt-1 text-xs leading-5 text-slate-500">
-                          Your changes appear immediately in the card preview.
-                          Build Card simply locks the current state as your
-                          export-ready result.
+                          Changes appear immediately. Build Card simply marks
+                          the current design as ready for export.
                         </p>
                       </div>
                     </div>
@@ -1369,7 +1698,6 @@ export const VisitingCardEditorPage: React.FC = () => {
                   >
                     <Sparkles className="h-4 w-4" />
                     {built ? 'Rebuild Card' : 'Build Card'}
-                    <ArrowRight className="h-4 w-4" />
                   </button>
                 </aside>
               </Reveal>
@@ -1381,6 +1709,7 @@ export const VisitingCardEditorPage: React.FC = () => {
                       <p className="text-xs font-bold uppercase tracking-[0.16em] text-cyan-300">
                         Step 2
                       </p>
+
                       <h2 className="mt-1 text-xl font-black text-white">
                         Live card preview
                       </h2>
@@ -1388,6 +1717,7 @@ export const VisitingCardEditorPage: React.FC = () => {
 
                     <div className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.035] px-3 py-2 text-xs font-semibold text-slate-400">
                       <Layers3 className="h-3.5 w-3.5" />
+
                       {mode === 'two-side'
                         ? 'Front + Back'
                         : 'One Side'}
@@ -1416,34 +1746,38 @@ export const VisitingCardEditorPage: React.FC = () => {
                   <div className="mt-6 grid gap-4 sm:grid-cols-3">
                     <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                       <Download className="h-5 w-5 text-cyan-300" />
+
                       <p className="mt-3 text-sm font-bold text-white">
-                        High resolution
+                        Full-size JPG
                       </p>
+
                       <p className="mt-1 text-xs leading-5 text-slate-500">
-                        PNG and JPG exports use a high pixel ratio for crisp
-                        digital sharing.
+                        Exported at the fixed 1050 × 600 px card geometry.
                       </p>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-                      <Palette className="h-5 w-5 text-cyan-300" />
+                      <Layers3 className="h-5 w-5 text-cyan-300" />
+
                       <p className="mt-3 text-sm font-bold text-white">
-                        Template preserved
+                        Exact card ratio
                       </p>
+
                       <p className="mt-1 text-xs leading-5 text-slate-500">
-                        Your selected template remains the visual foundation
-                        of the generated card.
+                        The preview and export use the same 3.5 × 2 inch ratio.
                       </p>
                     </div>
 
                     <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4">
                       <Sparkles className="h-5 w-5 text-cyan-300" />
+
                       <p className="mt-3 text-sm font-bold text-white">
-                        Ready to export
+                        No demo data
                       </p>
+
                       <p className="mt-1 text-xs leading-5 text-slate-500">
-                        Build the card, review it, then download the final
-                        result.
+                        Your editor starts clean while the selected design
+                        remains active.
                       </p>
                     </div>
                   </div>
@@ -1460,68 +1794,95 @@ export const VisitingCardEditorPage: React.FC = () => {
                         </h2>
 
                         <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500">
-                          Export the current finished design. For two-side
-                          cards, the PDF contains both sides as separate pages.
+                          Export the complete card without relying on the
+                          responsive preview dimensions.
                         </p>
                       </div>
 
-                      <div className="flex shrink-0 items-center gap-2 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.035] px-3 py-2 text-xs font-semibold text-emerald-300">
+                      <div className="flex items-center gap-2 rounded-xl border border-emerald-400/10 bg-emerald-400/[0.035] px-3 py-2 text-xs font-semibold text-emerald-300">
                         <Check className="h-3.5 w-3.5" />
                         {built ? 'Built & ready' : 'Live preview'}
                       </div>
                     </div>
 
                     <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      <button
-                        type="button"
-                        disabled={isExporting}
-                        onClick={exportPng}
-                        className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download PNG
-                      </button>
+                      {mode === 'one-side' ? (
+                        <>
+                          <button
+                            type="button"
+                            disabled={isExporting}
+                            onClick={exportOneSideJpg}
+                            className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download JPG
+                          </button>
 
-                      <button
-                        type="button"
-                        disabled={isExporting}
-                        onClick={exportJpg}
-                        className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50"
-                      >
-                        <Download className="h-4 w-4" />
-                        Download JPG
-                      </button>
+                          <button
+                            type="button"
+                            disabled={isExporting}
+                            onClick={exportOneSidePdf}
+                            className="flex items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download PDF
+                          </button>
 
-                      {mode === 'two-side' ? (
-                        <button
-                          type="button"
-                          disabled={isExporting}
-                          onClick={exportPdf}
-                          className="flex items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50 sm:col-span-2 lg:col-span-1"
-                        >
-                          <Download className="h-4 w-4" />
-                          Download PDF
-                        </button>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/tools/visiting-card-generator/one-side`,
+                              )
+                            }
+                            className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                            Change Template
+                          </button>
+                        </>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(
-                              `/tools/visiting-card-generator/${mode}/template/${templateId || '01'}`,
-                            )
-                          }
-                          className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
-                        >
-                          <ArrowLeft className="h-4 w-4" />
-                          Change Template
-                        </button>
+                        <>
+                          <button
+                            type="button"
+                            disabled={isExporting}
+                            onClick={exportTwoSideJpg}
+                            className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-white transition hover:border-cyan-400/30 hover:bg-cyan-400/10 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download JPGs
+                          </button>
+
+                          <button
+                            type="button"
+                            disabled={isExporting}
+                            onClick={exportTwoSidePdf}
+                            className="flex items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-5 py-3.5 text-sm font-black text-slate-950 transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            <Download className="h-4 w-4" />
+                            Download PDF
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(
+                                `/tools/visiting-card-generator/two-side`,
+                              )
+                            }
+                            className="flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/[0.045] px-5 py-3.5 text-sm font-bold text-slate-300 transition hover:bg-white/[0.07] hover:text-white"
+                          >
+                            <ArrowLeft className="h-4 w-4" />
+                            Change Template
+                          </button>
+                        </>
                       )}
                     </div>
 
                     {isExporting && (
                       <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl border border-cyan-400/10 bg-cyan-400/[0.035] py-3 text-xs font-semibold text-cyan-300">
                         <RefreshCw className="h-4 w-4 animate-spin" />
-                        Preparing your high-resolution export...
+                        Preparing your full-size export...
                       </div>
                     )}
                   </div>
@@ -1529,11 +1890,12 @@ export const VisitingCardEditorPage: React.FC = () => {
                   <div className="mt-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/[0.02] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
                     <div>
                       <p className="text-sm font-bold text-white">
-                        Template: {template.name}
+                        Selected template: {template.name}
                       </p>
+
                       <p className="mt-1 text-xs text-slate-500">
-                        You can return to the gallery without losing the
-                        current editor route.
+                        Template styling stays active while your personal
+                        information remains editable.
                       </p>
                     </div>
 
