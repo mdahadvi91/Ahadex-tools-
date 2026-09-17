@@ -416,16 +416,14 @@ export const PhotoQrBadgeGenerator: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column: Configuration Controls (Always visible) */}
         <div className="lg:col-span-6 space-y-5">
-          {/* Panel 1: Select QR Type with 360-Degree Rotating Neon Border */}
-          <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-            <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative rounded-[14px] bg-slate-900/95 p-5 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-slate-200 font-bold flex items-center gap-2">
-                  <QrCode className="w-4 h-4 text-cyan-400" />
-                  <span>{t.photoQrTool.contentTypeStep}</span>
-                </h4>
-              </div>
+          {/* Panel 1: Select QR Type */}
+          <div className="rounded-2xl glass-card border border-slate-800 bg-slate-900/90 p-5 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-200 font-bold flex items-center gap-2">
+                <QrCode className="w-4 h-4 text-cyan-400" />
+                <span>{t.photoQrTool.contentTypeStep}</span>
+              </h4>
+            </div>
 
               {/* Grid of 8 QR Types */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -705,41 +703,37 @@ export const PhotoQrBadgeGenerator: React.FC = () => {
                 )}
               </div>
             </div>
-          </div>
 
-          {/* Panel 2: Badge Position with 360-Degree Rotating Neon Border */}
-          <div className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-            <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-            <div className="relative rounded-[14px] bg-slate-900/95 p-5 space-y-4">
-              <div className="flex items-center justify-between pb-2 border-b border-white/10">
-                <h4 className="text-xs font-mono uppercase tracking-wider text-slate-200 font-bold flex items-center gap-2">
-                  <Move className="w-4 h-4 text-cyan-400" />
-                  <span>{t.photoQrTool.positionStep}</span>
-                </h4>
-              </div>
+          {/* Panel 2: Badge Position */}
+          <div className="rounded-2xl glass-card border border-slate-800 bg-slate-900/90 p-5 space-y-4 shadow-xl">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-slate-200 font-bold flex items-center gap-2">
+                <Move className="w-4 h-4 text-cyan-400" />
+                <span>{t.photoQrTool.positionStep}</span>
+              </h4>
+            </div>
 
-              {/* Position Buttons: Exactly 1 single line with grid-cols-4 */}
-              <div className="grid grid-cols-4 gap-2">
-                {[
-                  { id: 'top-left', label: t.photoQrTool.posTopLeft },
-                  { id: 'top-right', label: t.photoQrTool.posTopRight },
-                  { id: 'bottom-left', label: t.photoQrTool.posBottomLeft },
-                  { id: 'bottom-right', label: t.photoQrTool.posBottomRight },
-                ].map((pos) => (
-                  <button
-                    key={pos.id}
-                    type="button"
-                    onClick={() => setBadgePosition(pos.id as BadgePosition)}
-                    className={`py-2.5 px-2 rounded-xl text-[11px] font-semibold border transition-all text-center truncate cursor-pointer ${
-                      badgePosition === pos.id
-                        ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300 ring-1 ring-cyan-400/30'
-                        : 'bg-white/5 border-white/10 hover:border-white/20 text-slate-300 hover:text-white'
-                    }`}
-                  >
-                    {pos.label}
-                  </button>
-                ))}
-              </div>
+            {/* Position Buttons: Exactly 1 single line with grid-cols-4 */}
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { id: 'top-left', label: t.photoQrTool.posTopLeft },
+                { id: 'top-right', label: t.photoQrTool.posTopRight },
+                { id: 'bottom-left', label: t.photoQrTool.posBottomLeft },
+                { id: 'bottom-right', label: t.photoQrTool.posBottomRight },
+              ].map((pos) => (
+                <button
+                  key={pos.id}
+                  type="button"
+                  onClick={() => setBadgePosition(pos.id as BadgePosition)}
+                  className={`py-2.5 px-2 rounded-xl text-[11px] font-semibold border transition-all text-center truncate cursor-pointer ${
+                    badgePosition === pos.id
+                      ? 'bg-cyan-500/20 border-cyan-400/60 text-cyan-300 ring-1 ring-cyan-400/30'
+                      : 'bg-slate-800/60 border-slate-700/60 hover:border-slate-600 text-slate-300 hover:text-white'
+                  }`}
+                >
+                  {pos.label}
+                </button>
+              ))}
             </div>
           </div>
         </div>
@@ -747,79 +741,74 @@ export const PhotoQrBadgeGenerator: React.FC = () => {
         {/* Right Column: Photo Upload Dropzone & Live Preview Stage */}
         <div className="lg:col-span-6 space-y-4 lg:sticky lg:top-24">
           {!imageUrl ? (
-            /* Upload Dropzone with 360-Degree Rotating Neon Border */
-            <div className="relative p-[1.5px] rounded-3xl overflow-hidden group shadow-xl transition-all duration-300">
-              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-                className={`relative rounded-[22px] border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-300 min-h-[420px] flex flex-col items-center justify-center ${
-                  isDragging
-                    ? 'border-cyan-400 bg-cyan-950/40 scale-[1.01] ring-4 ring-cyan-500/20'
-                    : 'border-white/20 hover:border-cyan-400/50 bg-slate-900/95'
-                }`}
-              >
-                <div className="max-w-md mx-auto space-y-4">
-                  <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center mx-auto shadow-xl shadow-cyan-950/30">
-                    <Upload className="w-8 h-8" />
-                  </div>
+            /* Upload Dropzone */
+            <div
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={`rounded-3xl glass-card border-2 border-dashed p-8 sm:p-12 text-center transition-all duration-300 min-h-[420px] flex flex-col items-center justify-center shadow-xl ${
+                isDragging
+                  ? 'border-cyan-400 bg-cyan-950/40 scale-[1.01] ring-4 ring-cyan-500/20'
+                  : 'border-slate-700 hover:border-cyan-400/50 bg-slate-900/90'
+              }`}
+            >
+              <div className="max-w-md mx-auto space-y-4">
+                <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 flex items-center justify-center mx-auto shadow-xl shadow-cyan-950/30">
+                  <Upload className="w-8 h-8" />
+                </div>
 
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-100">{t.photoQrTool.uploadTitle}</h3>
-                    <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                      {t.photoQrTool.uploadDesc}
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-100">{t.photoQrTool.uploadTitle}</h3>
+                  <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                    {t.photoQrTool.uploadDesc}
+                  </p>
+                </div>
 
-                  <div className="flex items-center justify-center gap-3 pt-2">
-                    <Button
-                      variant="primary"
-                      size="md"
-                      onClick={() => fileInputRef.current?.click()}
-                      leftIcon={<ImageIcon className="w-4 h-4" />}
-                    >
-                      {t.photoQrTool.selectBtn}
-                    </Button>
-                  </div>
+                <div className="flex items-center justify-center gap-3 pt-2">
+                  <Button
+                    variant="primary"
+                    size="md"
+                    onClick={() => fileInputRef.current?.click()}
+                    leftIcon={<ImageIcon className="w-4 h-4" />}
+                  >
+                    {t.photoQrTool.selectBtn}
+                  </Button>
+                </div>
 
-                  <div className="text-[11px] font-mono text-slate-500 flex items-center justify-center gap-2 pt-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span>{t.photoQrTool.privacyBadge}</span>
-                  </div>
+                <div className="text-[11px] font-mono text-slate-400 flex items-center justify-center gap-2 pt-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                  <span>{t.photoQrTool.privacyBadge}</span>
                 </div>
               </div>
             </div>
           ) : (
-            /* Live Preview Stage with 360-Degree Rotating Neon Border */
-            <div className="relative p-[1.5px] rounded-3xl overflow-hidden group shadow-xl transition-all duration-300">
-              <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-              <div className="relative rounded-[22px] bg-slate-900/95 p-5 space-y-4">
-                <div className="flex items-center justify-between pb-3 border-b border-white/10">
-                  <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-slate-200 font-bold">
-                    <Eye className="w-4 h-4 text-cyan-400" />
-                    <span>{t.photoQrTool.livePreviewTitle}</span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-xs font-medium text-slate-300 hover:text-white border border-white/10 transition-colors flex items-center gap-1 cursor-pointer"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>{t.common.replace}</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleResetAll}
-                      className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
-                      title={t.common.remove}
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+            /* Live Preview Stage */
+            <div className="rounded-3xl glass-card border border-slate-800 bg-slate-900/90 p-5 space-y-4 shadow-2xl">
+              <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+                <div className="flex items-center gap-2 text-xs font-mono uppercase tracking-wider text-slate-200 font-bold">
+                  <Eye className="w-4 h-4 text-cyan-400" />
+                  <span>{t.photoQrTool.livePreviewTitle}</span>
                 </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-300 hover:text-white border border-slate-700 transition-colors flex items-center gap-1 cursor-pointer"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span>{t.common.replace}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleResetAll}
+                    className="p-1 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 transition-colors cursor-pointer"
+                    title={t.common.remove}
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
 
                 {/* Preview Box */}
                 <div className="relative rounded-2xl bg-slate-950/80 border border-white/10 overflow-hidden min-h-[360px] flex items-center justify-center p-2 shadow-2xl">
@@ -864,7 +853,6 @@ export const PhotoQrBadgeGenerator: React.FC = () => {
                   </p>
                 </div>
               </div>
-            </div>
           )}
         </div>
       </div>

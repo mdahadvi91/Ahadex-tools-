@@ -11,6 +11,11 @@ import { ToolProcessingState } from '../components/tools/ToolProcessingState';
 import { ToolSuccessState } from '../components/tools/ToolSuccessState';
 import { PhotoQrBadgeGenerator } from '../components/tools/qr/PhotoQrBadgeGenerator';
 import { VisitingCardGenerator } from '../components/tools/visiting-card/VisitingCardGenerator';
+import { ImageCompressor } from '../components/tools/image/ImageCompressor';
+import { ImageToPdfConverter } from '../components/tools/pdf/ImageToPdfConverter';
+import { QrCodeGenerator } from '../components/tools/qr/QrCodeGenerator';
+import { JsonFormatter } from '../components/tools/developer/JsonFormatter';
+import { PasswordGenerator } from '../components/tools/security/PasswordGenerator';
 import { useToast } from '../context/ToastContext';
 import { SEOHead } from '../components/common/SEOHead';
 import {
@@ -165,10 +170,107 @@ export const ToolViewPage: React.FC = () => {
     ];
   };
 
-  const currentToolSteps = getToolSteps(tool.slug);
+// FAQ Data helper
+const getToolFaqs = (slug: string) => {
+  if (slug === 'photo-qr-badge-generator') {
+    return [
+      {
+        question: 'Are my uploaded photos or QR details uploaded to any cloud server?',
+        answer: 'No, absolutely not. AHADEX TOOLS operates 100% locally inside your web browser’s RAM memory. Your images, URLs, Wi-Fi credentials, or vCard details are processed entirely on your device and are never sent to external servers.',
+      },
+      {
+        question: 'Which image file formats and file sizes are supported?',
+        answer: 'You can upload JPG, JPEG, PNG, and WebP images up to 25MB in size. High-resolution images maintain full sharpness when rendered into the composite QR badge image.',
+      },
+      {
+        question: 'What types of QR codes can I embed into my photo?',
+        answer: 'You can create 8 types of QR payloads: Website URLs, Social Media profiles (Instagram, Facebook, X, etc.), Wi-Fi configuration cards, WhatsApp direct chats, Digital vCards, Email templates, Direct phone calls, or Custom text notes.',
+      },
+      {
+        question: 'Will the QR badge code be easily scannable on smartphone cameras?',
+        answer: 'Yes! The QR generator automatically applies High (H-Level) error correction and high contrast pure black-and-white modules. This ensures fast, reliable scanning even if the badge is scaled or printed.',
+      },
+      {
+        question: 'Can I use this tool on my mobile phone or tablet?',
+        answer: 'Yes, the workspace is fully optimized for mobile devices. You can select photos directly from your camera roll or take a new photo, preview the badge, and download the finished PNG or JPG file directly to your phone.',
+      },
+    ];
+  }
+
+  if (slug === 'visiting-card-generator') {
+    return [
+      {
+        question: 'Is my corporate or personal contact information kept private?',
+        answer: 'Yes. All card rendering, template generation, and PDF compilation take place locally within your browser session. No personal or company details are stored or recorded.',
+      },
+      {
+        question: 'What is the difference between 1-Side and 2-Side business card modes?',
+        answer: '1-Side mode produces a single front-face executive card with name, title, contact links, and photo/logo. 2-Side mode adds a corporate back side with company tagline, service highlights, and a scan-to-save QR code, exporting a 2-page print-ready PDF.',
+      },
+      {
+        question: 'What file formats can I download my business card in?',
+        answer: 'You can download 300 DPI high-definition PNG images, 300 DPI JPG images, or a print-ready vector-scaled 3.5" x 2.0" PDF document ready for commercial printing.',
+      },
+      {
+        question: 'How do I add my custom profile photo or company logo?',
+        answer: 'In the card controls, click the "Photo & Toggles" tab. You can upload an avatar photo or logo in JPG, PNG, or WebP format, adjust zoom & position, and choose frame shapes (Circle, Rounded, Square).',
+      },
+      {
+        question: 'Is the exported PDF directly compatible with print shops?',
+        answer: 'Yes! The exported PDF complies with standard ISO 3.5" x 2.0" landscape dimensions at 300 DPI high resolution, making it suitable for professional print shops and desktop office printers.',
+      },
+    ];
+  }
+
+  return [
+    {
+      question: 'Is my data safe when using this utility?',
+      answer: 'Yes, 100%. All processing takes place locally in your web browser memory without sending data to external servers.',
+    },
+    {
+      question: 'Is this tool completely free to use?',
+      answer: 'Yes, all utilities on AHADEX TOOLS are 100% free with unlimited usage, zero subscriptions, and no hidden fees.',
+    },
+    {
+      question: 'Can I use this tool on mobile browsers?',
+      answer: 'Yes! The interface is fully responsive and supports iOS Safari, Android Chrome, and modern tablet browsers.',
+    },
+  ];
+};
 
   const category = CATEGORIES.find((c) => c.slug === tool.categorySlug);
   const relatedTools = TOOLS_REGISTRY.filter((t) => t.id !== tool.id);
+
+  const currentToolSteps = [
+    {
+      step: '01',
+      title: tool.slug === 'photo-qr-badge-generator' ? 'Choose Content Type' : tool.slug === 'visiting-card-generator' ? 'Enter VIP Info' : 'Select Input / File',
+      desc: tool.slug === 'photo-qr-badge-generator' ? 'Select URL, Social Link, Wi-Fi, WhatsApp, or vCard details.' : tool.slug === 'visiting-card-generator' ? 'Fill in your name, job title, company, contacts, and photo/logo.' : 'Upload your source document or enter data parameters.',
+      feature: tool.slug === 'photo-qr-badge-generator' ? '8 Content Types' : tool.slug === 'visiting-card-generator' ? 'Live Real-Time Sync' : 'In-Browser Sandbox',
+      IconComponent: Sliders,
+    },
+    {
+      step: '02',
+      title: tool.slug === 'photo-qr-badge-generator' ? 'Position Badge' : tool.slug === 'visiting-card-generator' ? 'Pick Template Theme' : 'Configure Settings',
+      desc: tool.slug === 'photo-qr-badge-generator' ? 'Place QR badge on Top-Left, Top-Right, Bottom-Left, or Bottom-Right.' : tool.slug === 'visiting-card-generator' ? 'Select from Executive VIP, Tech Modern, Creative Dark, and Minimalist themes.' : 'Customize output options to match your requirements.',
+      feature: tool.slug === 'photo-qr-badge-generator' ? '4 Corner Anchors' : tool.slug === 'visiting-card-generator' ? 'VIP Design Themes' : 'Custom Parameters',
+      IconComponent: Sliders,
+    },
+    {
+      step: '03',
+      title: tool.slug === 'photo-qr-badge-generator' ? 'Upload Photo' : tool.slug === 'visiting-card-generator' ? 'Configure 1 or 2 Sides' : 'Execute Utility',
+      desc: tool.slug === 'photo-qr-badge-generator' ? 'Drag & drop your primary portrait image into the workspace.' : tool.slug === 'visiting-card-generator' ? 'Choose 1-side executive layout or 2-side card with corporate back QR code.' : 'Process files instantly with 100% client-side WebAssembly execution.',
+      feature: tool.slug === 'photo-qr-badge-generator' ? 'Client-Side Upload' : tool.slug === 'visiting-card-generator' ? '1-Side & 2-Side Modes' : 'Instant Computation',
+      IconComponent: HelpCircle,
+    },
+    {
+      step: '04',
+      title: tool.slug === 'photo-qr-badge-generator' ? 'Export HD Photo' : tool.slug === 'visiting-card-generator' ? 'Download HD / PDF' : 'Download Result',
+      desc: tool.slug === 'photo-qr-badge-generator' ? 'Download high-definition PNG or JPG image with embedded QR badge.' : tool.slug === 'visiting-card-generator' ? 'Export 300 DPI high-resolution PNG, JPG, or print-ready 3.5" x 2.0" PDF.' : 'Save your processed file directly to your device.',
+      feature: tool.slug === 'photo-qr-badge-generator' ? 'High-Def Export' : tool.slug === 'visiting-card-generator' ? '300 DPI Print Ready' : 'Direct File Download',
+      IconComponent: CheckCircle2,
+    },
+  ];
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -286,41 +388,38 @@ export const ToolViewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tool Header Card with 360-Degree Rotating Neon Border Beam */}
-        <div className="relative p-[1.5px] rounded-3xl overflow-hidden shadow-2xl shadow-cyan-950/20 mb-8 group">
-          <div className="absolute -inset-[200%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-70 group-hover:opacity-100 transition-opacity duration-300" />
-          <div className="relative rounded-[22px] bg-slate-900/95 backdrop-blur-xl p-6 sm:p-8">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-950/30">
-                  <AnimatedIcon name={tool.iconName} className="w-7 h-7" />
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap mb-2">
-                    <Badge variant="cyan" withDot>
-                      {tool.category}
-                    </Badge>
-                    {tool.badge && <Badge variant="purple">{tool.badge}</Badge>}
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white/5 border border-white/5 text-slate-400">
-                      Version 1.0.0
-                    </span>
-                  </div>
-
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
-                    {tool.name}
-                  </h1>
-                  <p className="text-sm text-slate-300/90 mt-2 max-w-2xl leading-relaxed">
-                    {tool.description}
-                  </p>
-                </div>
+        {/* Tool Header Card */}
+        <div className="rounded-3xl glass-card border border-slate-800 bg-slate-900/90 backdrop-blur-xl p-6 sm:p-8 shadow-2xl mb-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+            <div className="flex items-start gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center shrink-0 shadow-lg shadow-cyan-950/40">
+                <AnimatedIcon name={tool.iconName} className="w-7 h-7" />
               </div>
 
-              <div className="flex flex-col gap-2 shrink-0 md:text-right">
-                <div className="inline-flex items-center gap-1.5 text-xs text-cyan-400 font-mono">
-                  <ShieldCheck className="w-4 h-4" />
-                  <span>100% In-Browser Execution</span>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap mb-2">
+                  <Badge variant="cyan" withDot>
+                    {tool.category}
+                  </Badge>
+                  {tool.badge && <Badge variant="purple">{tool.badge}</Badge>}
+                  <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800/80 border border-slate-700/60 text-slate-300">
+                    Version 1.0.0
+                  </span>
                 </div>
+
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 tracking-tight">
+                  {tool.name}
+                </h1>
+                <p className="text-sm text-slate-300/90 mt-2 max-w-2xl leading-relaxed">
+                  {tool.description}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 shrink-0 md:text-right">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-400 font-mono">
+                <ShieldCheck className="w-4 h-4" />
+                <span>100% Client-Side Privacy</span>
               </div>
             </div>
           </div>
@@ -334,6 +433,26 @@ export const ToolViewPage: React.FC = () => {
         ) : tool.slug === 'visiting-card-generator' ? (
           <div className="mb-12">
             <VisitingCardGenerator />
+          </div>
+        ) : tool.slug === 'image-compressor' ? (
+          <div className="mb-12">
+            <ImageCompressor />
+          </div>
+        ) : tool.slug === 'image-to-pdf-converter' ? (
+          <div className="mb-12">
+            <ImageToPdfConverter />
+          </div>
+        ) : tool.slug === 'qr-code-generator' ? (
+          <div className="mb-12">
+            <QrCodeGenerator />
+          </div>
+        ) : tool.slug === 'json-formatter' ? (
+          <div className="mb-12">
+            <JsonFormatter />
+          </div>
+        ) : tool.slug === 'password-generator' ? (
+          <div className="mb-12">
+            <PasswordGenerator />
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-12">
@@ -484,8 +603,8 @@ export const ToolViewPage: React.FC = () => {
           </div>
         )}
 
-        {/* How to Use Section with 360-degree Rotating Neon Border Step Cards */}
-        <div className="mt-12 pt-10 border-t border-white/10 space-y-6">
+        {/* How to Use Section with Clean Glass Cards */}
+        <div className="mt-12 pt-10 border-t border-slate-800 space-y-6">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shrink-0">
               <HelpCircle className="w-5 h-5" />
@@ -508,29 +627,63 @@ export const ToolViewPage: React.FC = () => {
             {currentToolSteps.map((stepItem, idx) => {
               const IconComp = stepItem.IconComponent;
               return (
-                <div key={idx} className="relative p-[1.5px] rounded-2xl overflow-hidden group shadow-lg transition-all duration-300">
-                  <div className="absolute -inset-[200%] animate-[spin_6s_linear_infinite] bg-[conic-gradient(from_0deg,transparent_0_260deg,#06b6d4_310deg,#3b82f6_360deg)] opacity-60 group-hover:opacity-100 transition-opacity duration-300" />
-                  <div className="relative rounded-[14px] bg-slate-900/95 p-4 sm:p-5 h-full flex flex-col justify-between space-y-3">
-                    <div>
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
-                          {stepItem.step}
-                        </span>
-                        <IconComp className="w-4 h-4 text-cyan-400" />
-                      </div>
-                      <h4 className="text-sm font-bold text-slate-100">{stepItem.title}</h4>
-                      <p className="text-xs text-slate-400 leading-relaxed mt-1">
-                        {stepItem.desc}
-                      </p>
+                <div
+                  key={idx}
+                  className="rounded-2xl glass-card border border-slate-800 hover:border-cyan-500/30 bg-slate-900/90 p-4 sm:p-5 flex flex-col justify-between space-y-3 transition-all"
+                >
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+                        {stepItem.step}
+                      </span>
+                      <IconComp className="w-4 h-4 text-cyan-400" />
                     </div>
-                    <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
-                      <CheckCircle2 className="w-3 h-3 text-cyan-400" />
-                      <span>{stepItem.feature}</span>
-                    </div>
+                    <h4 className="text-sm font-bold text-slate-100">{stepItem.title}</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                      {stepItem.desc}
+                    </p>
+                  </div>
+                  <div className="text-[10px] font-mono text-cyan-400/80 pt-2 border-t border-white/5 flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-cyan-400" />
+                    <span>{stepItem.feature}</span>
                   </div>
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* FAQ Section */}
+        <div className="mt-12 pt-10 border-t border-slate-800 space-y-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-400 shrink-0">
+              <HelpCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xl font-extrabold text-slate-100 tracking-tight">
+                Frequently Asked Questions
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Everything you need to know about privacy, supported formats, and mobile usage for {tool.name}.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {getToolFaqs(tool.slug).map((faq, index) => (
+              <div
+                key={index}
+                className="rounded-2xl glass-card border border-slate-800 bg-slate-900/80 p-5 space-y-2 hover:border-slate-700 transition-all"
+              >
+                <h4 className="text-sm font-bold text-slate-100 flex items-start gap-2">
+                  <span className="text-cyan-400 font-mono shrink-0">Q:</span>
+                  <span>{faq.question}</span>
+                </h4>
+                <p className="text-xs text-slate-400 leading-relaxed pl-5">
+                  {faq.answer}
+                </p>
+              </div>
+            ))}
           </div>
         </div>
 
