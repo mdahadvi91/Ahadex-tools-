@@ -1,0 +1,68 @@
+import { ClothingTemplate } from '../../types/passport';
+
+export const CLOTHING_TEMPLATES: ClothingTemplate[] = [
+  {
+    id: 'none',
+    name: 'Original Clothing',
+    category: 'casual',
+    gender: 'unisex',
+    previewColor: '#64748b',
+    description: 'Keep the original clothing from your uploaded portrait photograph.',
+  },
+  {
+    id: 'formal-navy-suit',
+    name: 'Navy Executive Suit',
+    category: 'suit',
+    gender: 'men',
+    previewColor: '#1e293b',
+    description: 'Deep navy wool suit jacket with white collared shirt and crimson silk tie.',
+  },
+  {
+    id: 'formal-black-suit',
+    name: 'Classic Black Suit',
+    category: 'suit',
+    gender: 'unisex',
+    previewColor: '#0f172a',
+    description: 'Sharp black tailored business suit with crisp white shirt and dark formal tie.',
+  },
+  {
+    id: 'white-formal-shirt',
+    name: 'Crisp White Shirt',
+    category: 'formal',
+    gender: 'unisex',
+    previewColor: '#f8fafc',
+    description: 'Clean pressed white Oxford button-down shirt with structured formal collar.',
+  },
+  {
+    id: 'sky-blue-shirt',
+    name: 'Sky Blue Business Shirt',
+    category: 'formal',
+    gender: 'unisex',
+    previewColor: '#38bdf8',
+    description: 'Modern corporate light blue button-down shirt with clean collar.',
+  },
+  {
+    id: 'blazer-tie',
+    name: 'Charcoal Blazer + Tie',
+    category: 'blazer',
+    gender: 'men',
+    previewColor: '#334155',
+    description: 'Charcoal grey textured blazer with light shirt and striped corporate tie.',
+  },
+  {
+    id: 'school-uniform',
+    name: 'White School / Student Shirt',
+    category: 'uniform',
+    gender: 'unisex',
+    previewColor: '#e2e8f0',
+    description: 'Modest student uniform shirt with neat turn-down collar.',
+  },
+  {
+    id: 'corporate-women-blazer',
+    name: 'Women’s Executive Blazer',
+    category: 'suit',
+    gender: 'women',
+    previewColor: '#1e1b4b',
+    description: 'Midnight blue tailored collar blazer with elegant inner v-neck blouse.',
+  },
+];

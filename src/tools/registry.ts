@@ -9,7 +9,7 @@ export const CATEGORIES: Category[] = [
     iconName: 'Image',
     color: 'from-cyan-500 to-blue-600',
     gradient: 'border-cyan-500/20 hover:border-cyan-400/40 text-cyan-400',
-    toolCount: 1,
+    toolCount: 2,
   },
   {
     id: 'pdf',
@@ -75,6 +75,26 @@ export const CATEGORIES: Category[] = [
 
 // Active Tools Registry - Add tools one by one on user request
 export const TOOLS_REGISTRY: Tool[] = [
+  {
+    id: 'passport-photo-generator',
+    name: 'Passport Size Photo Generator',
+    slug: 'passport-photo-generator',
+    description: 'Create official passport & visa photos with automatic background removal, posture alignment, formal suit templates, and 300 DPI print sheets.',
+    longDescription: 'Professional 6-step passport photo generator with client-side biometric verification. Includes Face Identity Lock to prevent AI face alteration, automatic hair-aware background segmentation (White, Blue, Grey), country-standard dimensions (Bangladesh, UAE, US 2x2", UK, India, Schengen), executive clothing templates, and multi-photo print sheets (A4, Letter, 4x6) at exact 300 DPI scale.',
+    category: 'Image & Media',
+    categorySlug: 'image',
+    iconName: 'Camera',
+    tags: ['passport-photo', 'passport-size-photo', 'visa-photo', 'background-removal', '35x45mm', '2x2-inch', 'print-sheet', 'biometric-photo'],
+    status: 'ready',
+    isFeatured: true,
+    isPopular: true,
+    badge: 'New',
+    inputFormat: 'JPG, PNG, WebP',
+    outputFormat: 'JPG, PNG, PDF',
+    processingType: 'client-side',
+    version: '1.0.0',
+    releaseDate: '2026-09-18',
+  },
   {
     id: 'photo-qr-badge-generator',
     name: 'Photo QR Badge Generator',

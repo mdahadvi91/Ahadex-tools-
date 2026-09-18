@@ -51,6 +51,10 @@ export const ToolViewPage: React.FC = () => {
 
   const tool = TOOLS_REGISTRY.find((t) => t.slug === toolSlug);
 
+  if (toolSlug === 'passport-photo-generator' || toolSlug === 'passport-size-photo-generator') {
+    return <Navigate to="/tools/passport-photo-generator" replace />;
+  }
+
   // Prepare dynamic SEO metadata props for SEOHead
   const pageTitle = tool
     ? tool.slug === 'photo-qr-badge-generator'

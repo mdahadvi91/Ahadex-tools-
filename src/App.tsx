@@ -13,6 +13,12 @@ import { OneSideTemplateGalleryPage } from './pages/OneSideTemplateGalleryPage';
 import { VisitingCardTemplatePreviewPage } from './pages/VisitingCardTemplatePreviewPage';
 import { OneSideVisitingCardEditorPage } from './pages/OneSideVisitingCardEditorPage';
 import { TwoSideVisitingCardEditorPage } from './pages/TwoSideVisitingCardEditorPage';
+import { PassportUploadPage } from './pages/passport/PassportUploadPage';
+import { PassportPreparePage } from './pages/passport/PassportPreparePage';
+import { PassportSettingsPage } from './pages/passport/PassportSettingsPage';
+import { PassportEditPage } from './pages/passport/PassportEditPage';
+import { PassportFinalPage } from './pages/passport/PassportFinalPage';
+import { PassportPrintPage } from './pages/passport/PassportPrintPage';
 import { AboutPage } from './pages/AboutPage';
 import { ContactPage } from './pages/ContactPage';
 import { PrivacyPage, TermsPage, DisclaimerPage } from './pages/LegalPages';
@@ -76,6 +82,40 @@ export default function App() {
                 <Route
                   path="/tools/visiting-card-generator/two-side/editor/:templateId"
                   element={<TwoSideVisitingCardEditorPage />}
+                />
+
+                {/* Passport Size Photo Generator (6 Full Pages) */}
+                <Route
+                  path="/tools/passport-photo-generator"
+                  element={<PassportUploadPage />}
+                />
+                <Route
+                  path="/tools/passport-photo-generator/upload"
+                  element={<PassportUploadPage />}
+                />
+                <Route
+                  path="/tools/passport-photo-generator/prepare"
+                  element={<PassportPreparePage />}
+                />
+                <Route
+                  path="/tools/passport-photo-generator/settings"
+                  element={<PassportSettingsPage />}
+                />
+                <Route
+                  path="/tools/passport-photo-generator/edit"
+                  element={<PassportEditPage />}
+                />
+                <Route
+                  path="/tools/passport-photo-generator/final"
+                  element={<PassportFinalPage />}
+                />
+                <Route
+                  path="/tools/passport-photo-generator/print"
+                  element={<PassportPrintPage />}
+                />
+                <Route
+                  path="/tools/passport-size-photo-generator"
+                  element={<PassportUploadPage />}
                 />
 
                 {/* Existing tool fallback */}
