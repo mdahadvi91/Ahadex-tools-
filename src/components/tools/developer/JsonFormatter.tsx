@@ -5,7 +5,7 @@ import { useToast } from '../../../context/ToastContext';
 
 export const JsonFormatter: React.FC = () => {
   const { addToast } = useToast();
-  const [inputJson, setInputJson] = useState<string>(`{\n  "appName": "AHADEX TOOLS",\n  "version": "1.0.0",\n  "features": ["100% Client-Side", "Fast", "Secure"],\n  "activeUsers": 12500,\n  "settings": {\n    "theme": "dark",\n    "privacyMode": true\n  }\n}`);
+  const [inputJson, setInputJson] = useState<string>(`{\n  "projectName": "sample-config",\n  "version": "1.0.0",\n  "status": "active",\n  "tags": ["client-side", "developer", "utility"],\n  "settings": {\n    "theme": "dark",\n    "debug": false\n  }\n}`);
   const [formattedJson, setFormattedJson] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
   const [indent, setIndent] = useState<number>(2);

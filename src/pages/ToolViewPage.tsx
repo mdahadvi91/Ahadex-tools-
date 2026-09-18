@@ -77,8 +77,8 @@ export const ToolViewPage: React.FC = () => {
         {
           step: 'Step 01',
           title: 'Select Card Format',
-          desc: 'Choose 1-Side or 2-Side mode and select from 8 executive business templates (Corporate, Gold, Minimal, Tech, etc.).',
-          feature: '8 Executive Templates',
+          desc: 'Choose 1-Side or 2-Side mode and select from 16 single-side and 16 double-side corporate templates (32 total ready-to-use executive designs).',
+          feature: '32 Ready Templates',
           IconComponent: Sliders,
         },
         {
@@ -105,12 +105,45 @@ export const ToolViewPage: React.FC = () => {
       ];
     }
 
+    if (slug === 'qr-code-generator') {
+      return [
+        {
+          step: 'Step 01',
+          title: 'Select Payload Type',
+          desc: 'Choose from 6 payload types: Website URL, Wi-Fi network, WhatsApp chat, Contact vCard, Email template, or Plain text.',
+          feature: '6 QR Payload Formats',
+          IconComponent: QrCode,
+        },
+        {
+          step: 'Step 02',
+          title: 'Enter Payload Details',
+          desc: 'Input your target URL, network credentials, phone numbers, email headers, or full digital contact details.',
+          feature: 'Instant Live Encoding',
+          IconComponent: Sliders,
+        },
+        {
+          step: 'Step 03',
+          title: 'Customize QR Styling',
+          desc: 'Personalize foreground and background module colors and select Error Correction Level (L, M, Q, H).',
+          feature: 'Palette & Error Correction',
+          IconComponent: Sparkles,
+        },
+        {
+          step: 'Step 04',
+          title: 'Download Vector / Image',
+          desc: 'Export your finished QR code directly in high-resolution PNG or JPG format with 100% browser privacy.',
+          feature: 'High-Res Local Export',
+          IconComponent: Download,
+        },
+      ];
+    }
+
     if (slug === 'photo-qr-badge-generator') {
       return [
         {
           step: 'Step 01',
           title: 'Select Content Type',
-          desc: 'Choose what data to encode: Website URL, Wi-Fi details, WhatsApp, Social handle, Contact vCard, Email, or Phone.',
+          desc: 'Choose what data to encode: Website URL, Wi-Fi details, WhatsApp, Social handle, Contact vCard, Email, Phone, or Plain text.',
           feature: '8 Supported QR Payloads',
           IconComponent: QrCode,
         },
@@ -170,107 +203,103 @@ export const ToolViewPage: React.FC = () => {
     ];
   };
 
-// FAQ Data helper
-const getToolFaqs = (slug: string) => {
-  if (slug === 'photo-qr-badge-generator') {
+  // FAQ Data helper
+  const getToolFaqs = (slug: string) => {
+    if (slug === 'qr-code-generator') {
+      return [
+        {
+          question: 'What types of QR codes can I create with this generator?',
+          answer: 'You can create 6 distinct types of QR codes: Website URLs, Wi-Fi Network login cards, WhatsApp direct chats, Digital vCards (contacts), Pre-filled Email templates, and Plain text notes.',
+        },
+        {
+          question: 'Are my QR details, passwords, or contact info sent to any server?',
+          answer: 'No. The QR generation happens 100% locally in your browser memory using client-side JavaScript. No data is ever transmitted or stored remotely.',
+        },
+        {
+          question: 'What does the Error Correction Level (L, M, Q, H) mean?',
+          answer: 'Error correction allows the QR code to remain readable even if partially damaged, smudged, or covered. Low (L) recovers ~7% of data, Medium (M) recovers ~15%, Quartile (Q) recovers ~25%, and High (H) recovers ~30%.',
+        },
+        {
+          question: 'Can I download the QR code for commercial printing?',
+          answer: 'Yes! You can download high-resolution PNG and JPG images that remain crisp and easily scannable when printed on flyers, stickers, business cards, or posters.',
+        },
+        {
+          question: 'Is this QR code generator completely free?',
+          answer: 'Yes, AHADEX TOOLS QR Code Generator is 100% free with no scan limits, no expiration dates, and no watermarks.',
+        },
+      ];
+    }
+
+    if (slug === 'photo-qr-badge-generator') {
+      return [
+        {
+          question: 'Are my uploaded photos or QR details uploaded to any cloud server?',
+          answer: 'No, absolutely not. AHADEX TOOLS operates 100% locally inside your web browser’s RAM memory. Your images, URLs, Wi-Fi credentials, or vCard details are processed entirely on your device and are never sent to external servers.',
+        },
+        {
+          question: 'Which image file formats and file sizes are supported?',
+          answer: 'You can upload JPG, JPEG, PNG, and WebP images up to 25MB in size. High-resolution images maintain full sharpness when rendered into the composite QR badge image.',
+        },
+        {
+          question: 'What types of QR codes can I embed into my photo?',
+          answer: 'You can create 8 types of QR payloads: Website URLs, Social Media profiles (Instagram, Facebook, X, etc.), Wi-Fi configuration cards, WhatsApp direct chats, Digital vCards, Email templates, Direct phone calls, or Custom text notes.',
+        },
+        {
+          question: 'Will the QR badge code be easily scannable on smartphone cameras?',
+          answer: 'Yes! The QR generator automatically applies High (H-Level) error correction and high contrast pure black-and-white modules. This ensures fast, reliable scanning even if the badge is scaled or printed.',
+        },
+        {
+          question: 'Can I use this tool on my mobile phone or tablet?',
+          answer: 'Yes, the workspace is fully optimized for mobile devices. You can select photos directly from your camera roll or take a new photo, preview the badge, and download the finished PNG or JPG file directly to your phone.',
+        },
+      ];
+    }
+
+    if (slug === 'visiting-card-generator') {
+      return [
+        {
+          question: 'Is my corporate or personal contact information kept private?',
+          answer: 'Yes. All card rendering, template generation, and PDF compilation take place locally within your browser session. No personal or company details are stored or recorded.',
+        },
+        {
+          question: 'What is the difference between 1-Side and 2-Side business card modes?',
+          answer: '1-Side mode produces a single front-face executive card with name, title, contact links, and photo/logo. 2-Side mode adds a corporate back side with company tagline, service highlights, and a scan-to-save QR code, exporting a 2-page print-ready PDF.',
+        },
+        {
+          question: 'What file formats can I download my business card in?',
+          answer: 'You can download 300 DPI high-definition PNG images, 300 DPI JPG images, or a print-ready vector-scaled 3.5" x 2.0" PDF document ready for commercial printing.',
+        },
+        {
+          question: 'How do I add my custom profile photo or company logo?',
+          answer: 'In the card controls, click the "Photo & Toggles" tab. You can upload an avatar photo or logo in JPG, PNG, or WebP format, adjust zoom & position, and choose frame shapes (Circle, Rounded, Square).',
+        },
+        {
+          question: 'Is the exported PDF directly compatible with print shops?',
+          answer: 'Yes! The exported PDF complies with standard ISO 3.5" x 2.0" landscape dimensions at 300 DPI high resolution, making it suitable for professional print shops and desktop office printers.',
+        },
+      ];
+    }
+
     return [
       {
-        question: 'Are my uploaded photos or QR details uploaded to any cloud server?',
-        answer: 'No, absolutely not. AHADEX TOOLS operates 100% locally inside your web browser’s RAM memory. Your images, URLs, Wi-Fi credentials, or vCard details are processed entirely on your device and are never sent to external servers.',
+        question: 'Is my data safe when using this utility?',
+        answer: 'Yes, 100%. All processing takes place locally in your web browser memory without sending data to external servers.',
       },
       {
-        question: 'Which image file formats and file sizes are supported?',
-        answer: 'You can upload JPG, JPEG, PNG, and WebP images up to 25MB in size. High-resolution images maintain full sharpness when rendered into the composite QR badge image.',
+        question: 'Is this tool completely free to use?',
+        answer: 'Yes, all utilities on AHADEX TOOLS are 100% free with unlimited usage, zero subscriptions, and no hidden fees.',
       },
       {
-        question: 'What types of QR codes can I embed into my photo?',
-        answer: 'You can create 8 types of QR payloads: Website URLs, Social Media profiles (Instagram, Facebook, X, etc.), Wi-Fi configuration cards, WhatsApp direct chats, Digital vCards, Email templates, Direct phone calls, or Custom text notes.',
-      },
-      {
-        question: 'Will the QR badge code be easily scannable on smartphone cameras?',
-        answer: 'Yes! The QR generator automatically applies High (H-Level) error correction and high contrast pure black-and-white modules. This ensures fast, reliable scanning even if the badge is scaled or printed.',
-      },
-      {
-        question: 'Can I use this tool on my mobile phone or tablet?',
-        answer: 'Yes, the workspace is fully optimized for mobile devices. You can select photos directly from your camera roll or take a new photo, preview the badge, and download the finished PNG or JPG file directly to your phone.',
+        question: 'Can I use this tool on mobile browsers?',
+        answer: 'Yes! The interface is fully responsive and supports iOS Safari, Android Chrome, and modern tablet browsers.',
       },
     ];
-  }
-
-  if (slug === 'visiting-card-generator') {
-    return [
-      {
-        question: 'Is my corporate or personal contact information kept private?',
-        answer: 'Yes. All card rendering, template generation, and PDF compilation take place locally within your browser session. No personal or company details are stored or recorded.',
-      },
-      {
-        question: 'What is the difference between 1-Side and 2-Side business card modes?',
-        answer: '1-Side mode produces a single front-face executive card with name, title, contact links, and photo/logo. 2-Side mode adds a corporate back side with company tagline, service highlights, and a scan-to-save QR code, exporting a 2-page print-ready PDF.',
-      },
-      {
-        question: 'What file formats can I download my business card in?',
-        answer: 'You can download 300 DPI high-definition PNG images, 300 DPI JPG images, or a print-ready vector-scaled 3.5" x 2.0" PDF document ready for commercial printing.',
-      },
-      {
-        question: 'How do I add my custom profile photo or company logo?',
-        answer: 'In the card controls, click the "Photo & Toggles" tab. You can upload an avatar photo or logo in JPG, PNG, or WebP format, adjust zoom & position, and choose frame shapes (Circle, Rounded, Square).',
-      },
-      {
-        question: 'Is the exported PDF directly compatible with print shops?',
-        answer: 'Yes! The exported PDF complies with standard ISO 3.5" x 2.0" landscape dimensions at 300 DPI high resolution, making it suitable for professional print shops and desktop office printers.',
-      },
-    ];
-  }
-
-  return [
-    {
-      question: 'Is my data safe when using this utility?',
-      answer: 'Yes, 100%. All processing takes place locally in your web browser memory without sending data to external servers.',
-    },
-    {
-      question: 'Is this tool completely free to use?',
-      answer: 'Yes, all utilities on AHADEX TOOLS are 100% free with unlimited usage, zero subscriptions, and no hidden fees.',
-    },
-    {
-      question: 'Can I use this tool on mobile browsers?',
-      answer: 'Yes! The interface is fully responsive and supports iOS Safari, Android Chrome, and modern tablet browsers.',
-    },
-  ];
-};
+  };
 
   const category = CATEGORIES.find((c) => c.slug === tool.categorySlug);
   const relatedTools = TOOLS_REGISTRY.filter((t) => t.id !== tool.id);
 
-  const currentToolSteps = [
-    {
-      step: '01',
-      title: tool.slug === 'photo-qr-badge-generator' ? 'Choose Content Type' : tool.slug === 'visiting-card-generator' ? 'Enter VIP Info' : 'Select Input / File',
-      desc: tool.slug === 'photo-qr-badge-generator' ? 'Select URL, Social Link, Wi-Fi, WhatsApp, or vCard details.' : tool.slug === 'visiting-card-generator' ? 'Fill in your name, job title, company, contacts, and photo/logo.' : 'Upload your source document or enter data parameters.',
-      feature: tool.slug === 'photo-qr-badge-generator' ? '8 Content Types' : tool.slug === 'visiting-card-generator' ? 'Live Real-Time Sync' : 'In-Browser Sandbox',
-      IconComponent: Sliders,
-    },
-    {
-      step: '02',
-      title: tool.slug === 'photo-qr-badge-generator' ? 'Position Badge' : tool.slug === 'visiting-card-generator' ? 'Pick Template Theme' : 'Configure Settings',
-      desc: tool.slug === 'photo-qr-badge-generator' ? 'Place QR badge on Top-Left, Top-Right, Bottom-Left, or Bottom-Right.' : tool.slug === 'visiting-card-generator' ? 'Select from Executive VIP, Tech Modern, Creative Dark, and Minimalist themes.' : 'Customize output options to match your requirements.',
-      feature: tool.slug === 'photo-qr-badge-generator' ? '4 Corner Anchors' : tool.slug === 'visiting-card-generator' ? 'VIP Design Themes' : 'Custom Parameters',
-      IconComponent: Sliders,
-    },
-    {
-      step: '03',
-      title: tool.slug === 'photo-qr-badge-generator' ? 'Upload Photo' : tool.slug === 'visiting-card-generator' ? 'Configure 1 or 2 Sides' : 'Execute Utility',
-      desc: tool.slug === 'photo-qr-badge-generator' ? 'Drag & drop your primary portrait image into the workspace.' : tool.slug === 'visiting-card-generator' ? 'Choose 1-side executive layout or 2-side card with corporate back QR code.' : 'Process files instantly with 100% client-side WebAssembly execution.',
-      feature: tool.slug === 'photo-qr-badge-generator' ? 'Client-Side Upload' : tool.slug === 'visiting-card-generator' ? '1-Side & 2-Side Modes' : 'Instant Computation',
-      IconComponent: HelpCircle,
-    },
-    {
-      step: '04',
-      title: tool.slug === 'photo-qr-badge-generator' ? 'Export HD Photo' : tool.slug === 'visiting-card-generator' ? 'Download HD / PDF' : 'Download Result',
-      desc: tool.slug === 'photo-qr-badge-generator' ? 'Download high-definition PNG or JPG image with embedded QR badge.' : tool.slug === 'visiting-card-generator' ? 'Export 300 DPI high-resolution PNG, JPG, or print-ready 3.5" x 2.0" PDF.' : 'Save your processed file directly to your device.',
-      feature: tool.slug === 'photo-qr-badge-generator' ? 'High-Def Export' : tool.slug === 'visiting-card-generator' ? '300 DPI Print Ready' : 'Direct File Download',
-      IconComponent: CheckCircle2,
-    },
-  ];
+  const currentToolSteps = getToolSteps(tool.slug);
 
   const handleShare = () => {
     navigator.clipboard.writeText(window.location.href);
